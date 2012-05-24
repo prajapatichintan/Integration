@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<publishData>
+  <publishProfile publishUrl="http://localhost/3dCart" deleteExistingFiles="False" ftpAnonymousLogin="False" ftpPassiveMode="True" msdeploySite="" msdeploySiteID="" msdeployRemoteSitePhysicalPath="" msdeployAllowUntrustedCertificate="False" msdeploySkipExtraFilesOnServer="True" msdeployMarkAsApp="False" profileName="Profile1" publishMethod="FileSystem" replaceMatchingFiles="True" userName="" savePWD="False" userPWD="" SelectedForPublish="True">
+    <file relUrl="Web.config" publishTime="01/25/2011 14:51:37" />
+    <file relUrl="Site.Master" publishTime="01/25/2011 11:17:43" />
+    <file relUrl="Account/Web.config" publishTime="01/25/2011 14:51:37" />
+    <file relUrl="Account/Register.aspx" publishTime="01/18/2011 11:07:44" />
+    <file relUrl="Account/ChangePasswordSuccess.aspx" publishTime="01/18/2011 11:07:44" />
+    <file relUrl="Account/Login.aspx" publishTime="01/18/2011 11:07:44" />
+    <file relUrl="Styles/Site.css" publishTime="01/18/2011 11:07:44" />
+    <file relUrl="Scripts/jquery-1.4.1.js" publishTime="01/18/2011 11:07:44" />
+    <file relUrl="Account/ChangePassword.aspx" publishTime="01/18/2011 11:07:44" />
+    <file relUrl="bin/4TellDataExport.dll" publishTime="01/25/2011 11:48:59" />
+    <file relUrl="Global.asax" publishTime="01/18/2011 11:07:44" />
+    <file relUrl="Scripts/jquery-1.4.1-vsdoc.js" publishTime="01/18/2011 11:07:44" />
+    <file relUrl="About.aspx" publishTime="01/18/2011 11:07:44" />
+    <file relUrl="Default.aspx" publishTime="01/25/2011 11:22:09" />
+    <file relUrl="Scripts/jquery-1.4.1.min.js" publishTime="01/18/2011 11:07:44" />
+    <file relUrl="bin/4TellDataExport.pdb" publishTime="01/25/2011 11:48:58" />
+  </publishProfile>
+</publishData>

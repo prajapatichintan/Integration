@@ -1,0 +1,1443 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<clientSettings>
+	<client enabled="true" name="Grunt">
+		<alias>Grunt</alias>
+		<tier></tier>
+		<pocName>Kerry Seley</pocName>
+		<pocEmail>kerry@grunt.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.grunt.com</storeUrl>
+		<cartType>Magento</cartType>
+		<apiUserName></apiUserName>
+		<cartLevel>Enterprise</cartLevel>
+		<cartVersion>1.8</cartVersion>
+		<adminUser>4-Tell</adminUser>
+		<adminPassword>Password2011</adminPassword>
+		<apiKey></apiKey>
+		<ftpType>sftp</ftpType>
+		<ftpUrl>199.168.172.147</ftpUrl>
+		<ftpUser>sgtg10admin</ftpUser>
+		<ftpPassword></ftpPassword>
+		<exclusionConditions>
+			<condition name="status" fieldName="status" comparison="eq" value="0"/>
+			<condition name="visibility" fieldName="visibility" comparison="eq" value="1"/>
+			<condition name="price" fieldName="price" comparison="lt" value="0.01"/>
+			<condition name="exclude_4_tell" fieldName="exclude_4_tell" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<replacementConditions>
+			<condition name="sku" type="catalog" oldFieldName="sku" newFieldName="entity_id"/>
+		</replacementConditions>
+	</client>
+	<client enabled="true" name="The Catholic Shop">
+		<alias>Catholic</alias>
+		<tier>Intro</tier>
+		<pocName>Josh Gray</pocName>
+		<pocEmail>joshgray@me.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.thecatholicshop.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<apiUserName></apiUserName>
+		<apiKey>38835500888427120388355008884271</apiKey>
+		<cartLevel>Standard</cartLevel>
+		<adminUser>4telladmin</adminUser>
+		<adminPassword>4Recommend</adminPassword>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>thecatholicshop.com</ftpUrl>
+		<ftpUser>thesvcjq</ftpUser>
+		<ftpPassword>GkrmCOvS3GCO</ftpPassword>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="19" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="20" dayOfWeek="Monday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Lukie Games">
+		<alias>LukieGam</alias>
+		<tier>Silver</tier>
+		<pocName>Jesse Cover</pocName>
+		<pocEmail>jesse@lukiegames.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.lukiegames.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<apiUserName></apiUserName>
+		<apiKey>23270530960139202327053096013920</apiKey>
+		<cartLevel>Enterprise</cartLevel>
+		<adminUser>4telladmin</adminUser>
+		<adminPassword>4Recommend01</adminPassword>
+		<cartTheme>lukiegames</cartTheme>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>ftp.lukiegames.com</ftpUrl>
+		<ftpUser>luk818</ftpUser>
+		<ftpPassword>aDoWel2W4cYx</ftpPassword>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="true" exclusions="true" replacements="false" rate="daily" hourOfDay="6" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="true" catalog="true" exclusions="true" replacements="false" rate="daily" hourOfDay="9" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="true" catalog="true" exclusions="true" replacements="false" rate="daily" hourOfDay="15" dayOfWeek="" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="OneStopEquineShop">
+		<alias>OneStopE</alias>
+		<tier>Intro</tier>
+		<pocName>Alexander Lans</pocName>
+		<pocEmail>alexander@foalgroup.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.onestopequineshop.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<apiUserName></apiUserName>
+		<apiKey>90279104532937121902791045329371</apiKey>
+		<cartLevel>Standard</cartLevel>
+		<adminUser>4Telltest</adminUser>
+		<adminPassword>2Recommend01</adminPassword>
+		<cartTheme>default</cartTheme>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>onestopequineshop.3dcartstores.com</ftpUrl>
+		<ftpUser>oneqkkoa</ftpUser>
+		<ftpPassword>SyDIpHcgjz1P</ftpPassword>
+		<secondAttribute enabled="true" fieldName="manufacturer"/>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="3" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="4" dayOfWeek="Tuesday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Air Strike Inc">
+		<alias>AirStrik</alias>
+		<tier>Intro</tier>
+		<pocName>Jason Fetko</pocName>
+		<pocEmail>info@airstrikeinc.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.airstrikeinc.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<apiUserName></apiUserName>
+		<apiKey>57544572044562321575445720445623</apiKey>
+		<cartLevel>Standard</cartLevel>
+		<adminUser>4telluser</adminUser>
+		<adminPassword>2Predict01</adminPassword>
+		<cartTheme>v32023</cartTheme>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>airstrikeinc.3dcartstores.com</ftpUrl>
+		<ftpUser>air9ritj</ftpUser>
+		<ftpPassword>J059ftSlbq5O</ftpPassword>
+		<secondAttribute enabled="false"/>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="4" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="5" dayOfWeek="Monday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Sturdy Built Online">
+		<alias>SturdyBu</alias>
+		<tier></tier>
+		<pocName>JT</pocName>
+		<pocEmail>sales@sturdybuiltonline.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.SturdyBuiltOnline.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>sturdybuiltonline.com</ftpUrl>
+		<ftpUser>stu</ftpUser>
+		<ftpPassword>n2jka8jm7</ftpPassword>
+		<adminUser>3dcartadmin</adminUser>
+		<adminPassword>4tellpassw</adminPassword>
+		<apiUserName></apiUserName>
+		<apiKey>57705101260572225770510126057222</apiKey>
+		<cartTheme>sturdybuiltonline</cartTheme>
+		<exclusionConditions>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="0" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="1" dayOfWeek="Monday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Royal Yarns">
+		<alias>RoyalYar</alias>
+		<tier></tier>
+		<pocName>Fernando Lulli</pocName>
+		<pocEmail>flulli@msn.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>12</monthsToExport>
+		<storeUrl>www.royalyarns.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Enterprise</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>knitting-crochet-yarn.3dcartstores.com</ftpUrl>
+		<ftpUser>kni</ftpUser>
+		<ftpPassword>82h8sn8</ftpPassword>
+		<adminUser>3dcartsupportN8k29q</adminUser>
+		<adminPassword>3dcartcom</adminPassword>
+		<apiUserName></apiUserName>
+		<apiKey>15585433745582422155854337455824</apiKey>
+		<cartTheme>A-Working3</cartTheme>
+		<exclusionConditions>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="20" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="21" dayOfWeek="Tuesday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="JB Prince">
+		<alias>JBPrince</alias>
+		<tier></tier>
+		<pocName>Gary Lamb</pocName>
+		<pocEmail>gary.lamb@websitepipeline.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.JBPrince.com</storeUrl>
+		<cartType>WebsitePipeline</cartType>
+		<cartLevel>0</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>ftp.websitepipeline.com/jbprince/4tell/</ftpUrl>
+		<ftpUser>4tell</ftpUser>
+		<ftpPassword>4telljbp001</ftpPassword>
+		<adminUser></adminUser>
+		<adminPassword></adminPassword>
+		<apiUserName></apiUserName>
+		<apiKey></apiKey>
+		<cartTheme></cartTheme>
+		<exclusionConditions>
+		</exclusionConditions>
+		<uploadTimer enabled="false" salesUpdate="true" catalog="true" exclusions="true" replacements="false" rate="weekly" hourOfDay="23" dayOfWeek="Sunday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Condomania">
+		<alias>condoman</alias>
+		<tier>Intro</tier>
+		<pocName>Adam Glickman</pocName>
+		<pocEmail>Adam@Condomania.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<resell>1</resell>
+		<minLikelihood>3</minLikelihood>
+		<minCommon>2</minCommon>
+		<monthsToExport>3</monthsToExport>
+		<storeUrl>www.condomania.com</storeUrl>
+		<cartType>Magento</cartType>
+		<cartLevel>Go</cartLevel>
+		<ftpType></ftpType>
+		<ftpUrl></ftpUrl>
+		<ftpUser></ftpUser>
+		<ftpPassword></ftpPassword>
+		<adminUser></adminUser>
+		<adminPassword></adminPassword>
+		<apiUserName>4Tell</apiUserName>
+		<apiKey>4tellsoftware</apiKey>
+		<cartTheme></cartTheme>
+		<secondAttribute enabled="false"/>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="4" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="5" dayOfWeek="Wednesday" weekOfMonth="" />
+	</client>	
+	<client enabled="true" name="Zanadia">
+		<alias>Zanadia</alias>
+		<tier>Intro</tier>
+		<pocName>Nabil Bugaighis</pocName>
+		<pocEmail>nabil@zanadia.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.Zanadia.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Enterprise</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>zanadia.3dcartstores.com</ftpUrl>
+		<ftpUser>zanqt07x</ftpUser>
+		<ftpPassword>MqKr45ALUnnC</ftpPassword>
+		<adminUser>4telladmin</adminUser>
+		<adminPassword>2Predict02</adminPassword>
+		<apiUserName></apiUserName>
+		<apiKey>16077935175514619160779351755146</apiKey>
+		<cartTheme>default</cartTheme>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="21" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="22" dayOfWeek="Tuesday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Smiley Cookie">
+		<alias>SmileyCo</alias>
+		<tier></tier>
+		<pocName>Adam Golomb</pocName>
+		<pocEmail>adam@smileycookie.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.smileycookie.com</storeUrl>
+		<cartType>Magento</cartType>
+		<cartLevel>Enterprise</cartLevel>
+		<cartVersion>1.8</cartVersion>
+		<adminUser>nlofgren</adminUser>
+		<adminPassword>fourtell11</adminPassword>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>174.143.202.144</ftpUrl>
+		<ftpUser>4tell</ftpUser>
+		<ftpPassword>4tell2011</ftpPassword>
+	</client>
+	<client enabled="true" name="Performance Truck Products">
+		<alias>PerfTruc</alias>
+		<tier></tier>
+		<pocName>Travis Harshaw</pocName>
+		<pocEmail>travis@performancetruckproducts.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.performancetruckproducts.com</storeUrl>
+		<cartType>Magento</cartType>
+		<cartLevel>Pro</cartLevel>
+		<cartVersion>1.8</cartVersion>
+	</client>
+	<client enabled="true" name="OzThongs">
+		<alias>OzThongs</alias>
+		<tier>Intro</tier>
+		<pocName>Mark Neal</pocName>
+		<pocEmail>sales@ozthongs.com.au</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.ozthongs.com.au</storeUrl>
+		<cartType>Magento</cartType>
+		<cartLevel>Community</cartLevel>
+		<cartVersion>1.5</cartVersion>
+		<adminUser></adminUser>
+		<adminPassword></adminPassword>
+		<apiUserName></apiUserName>
+		<apiKey></apiKey>
+	</client>
+	<client  enabled="true" name="Electan">
+		<alias>Electan</alias>
+		<tier></tier>
+		<pocName>Josep Manuel</pocName>
+		<pocEmail>jmandreu@electan.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.electan.com</storeUrl>
+		<cartType>osCommerce</cartType>
+		<cartLevel></cartLevel>
+		<cartVersion></cartVersion>
+		<adminUser></adminUser>
+		<adminPassword></adminPassword>
+		<apiUserName></apiUserName>
+		<apiKey></apiKey>
+	</client>
+	<client enabled="true" name="Ace Tool">
+		<alias>AceTool</alias>
+		<tier></tier>
+		<pocName>Maria Polidoro</pocName>
+		<pocEmail></pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.acetoolonline.com</storeUrl>
+		<cartType>Volusion</cartType>
+		<cartLevel></cartLevel>
+		<cartVersion></cartVersion>
+		<cartTheme>posh</cartTheme>
+		<adminUser>ken@4-tell.com</adminUser>
+		<adminPassword>2predict</adminPassword>
+		<apiUserName>Ken@4-Tell.com</apiUserName>
+		<apiKey>1721365C1F341B3980EC8EE0EDD7D2BF34C0E95B8ABC650F48039F086DBD91FE</apiKey>
+	    <photoBaseUrl>http://a248.e.akamai.net/origin-cdn.volusion.com/</photoBaseUrl>
+	</client>
+	<client enabled="true" name="Virginia Candle Company">
+		<alias>Virginia</alias>
+		<tier>Intro</tier>
+		<pocName>Diana Jenkins</pocName>
+		<pocEmail>djenkins@virginiacandle.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.virginiacandle.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>virginiacandle.com</ftpUrl>
+		<ftpUser>vir877</ftpUser>
+		<ftpPassword>0zBZCh7oQiA3</ftpPassword>
+		<adminUser>SBrandes1</adminUser>
+		<adminPassword>Woodwick1</adminPassword>
+		<apiUserName></apiUserName>
+		<apiKey>64008320515333521640083205153335</apiKey>
+		<cartTheme>default</cartTheme>
+		<showLogo>true</showLogo>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="2"/>
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="3" dayOfWeek="Sunday" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="monthly" hourOfDay="6" dayOfMonth="1"/>
+	</client>
+	<client enabled="true" name="TheLuvo">
+		<alias>TheLuvo</alias>
+		<tier>Intro</tier>
+		<pocName>Halil Mustafa</pocName>
+		<pocEmail>store.luvo@gmail.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<resell>1</resell>
+		<minLikelihood>3</minLikelihood>
+		<minCommon>2</minCommon>
+		<monthsToExport>3</monthsToExport>
+		<storeUrl>www.TheLuvo.com</storeUrl>
+		<cartType>Magento</cartType>
+		<cartLevel>Go</cartLevel>
+		<adminUser>4tell</adminUser>
+		<adminPassword>4telltemp</adminPassword>
+		<apiUserName>4Tell</apiUserName>
+		<apiKey>2Predict01</apiKey>
+		<cartTheme>Luvo</cartTheme>
+		<secondAttribute enabled="false"/>
+		<exclusionConditions>
+		</exclusionConditions>
+		<uploadTimer enabled="false" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="5" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="false" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="6" dayOfWeek="Monday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Westside Wholesale">
+		<alias>Westside</alias>
+		<tier></tier>
+		<pocName>Allen Nazarian</pocName>
+		<pocEmail>allen@westsidewholesale.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.westsidewholesale.com</storeUrl>
+		<cartType>Magento</cartType>
+		<cartLevel>Community</cartLevel>
+		<cartVersion>1.7</cartVersion>
+		<adminUser></adminUser>
+		<adminPassword></adminPassword>
+		<apiUserName></apiUserName>
+		<apiKey></apiKey>
+	</client>
+	<client enabled="true" name="Amron International">
+		<alias>Amron</alias>
+		<tier></tier>
+		<pocName>Mike Malone</pocName>
+		<pocEmail>mmalone@amronintl.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.amronintl.com</storeUrl>
+		<cartType>Magento</cartType>
+		<cartLevel>Enterprise</cartLevel>
+		<cartVersion>1.9</cartVersion>
+		<adminUrl>http://amronint.nexcess.net/admin</adminUrl>
+		<adminUser>nlofgren</adminUser>
+		<adminPassword>4-tell.com</adminPassword>
+		<apiUserName></apiUserName>
+		<apiKey></apiKey>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>ftp://amronint.nexcess.net</ftpUrl>
+		<ftpUser>4tell@amronintl.com</ftpUser>
+		<ftpPassword>Welcome@Amron@)!!!</ftpPassword>
+	</client>
+	<client enabled="true" name="Camelot Living">
+		<alias>Camelot</alias>
+		<tier>Intro</tier>
+		<pocName>Carlee Goochey</pocName>
+		<pocEmail>carlee@camelotliving.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.camelotliving.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>camelotliving.3dcartstores.com</ftpUrl>
+		<ftpUser>ins1snub</ftpUser>
+		<ftpPassword>vCMnVa0lujfL</ftpPassword>
+		<adminUser>admintemp1</adminUser>
+		<adminPassword>2Recommend01</adminPassword>
+		<apiUserName></apiUserName>
+		<apiKey>11395535505341721113955355053417</apiKey>
+		<cartTheme>v32004</cartTheme>
+		<GoogleId>UA-24418789-1</GoogleId>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="2" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="3" dayOfWeek="Monday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="California Hatchery">
+		<alias>CalHatch</alias>
+		<tier>Intro</tier>
+		<pocName>David Pratt</pocName>
+		<pocEmail>maildavidpratt@gmail.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.californiahatchery.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>californiahatchery.3dcartstores.com</ftpUrl>
+		<ftpUser>caljdsky</ftpUser>
+		<ftpPassword>0ZMn2npdxanA</ftpPassword>
+		<adminUser>amys4tell</adminUser>
+		<adminPassword>2Recommend01</adminPassword>
+		<apiUserName></apiUserName>
+		<apiKey>21886817724694522218868177246945</apiKey>
+		<cartTheme>v30014</cartTheme>
+		<exclusionConditions>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="23" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="0" dayOfWeek="Wednesday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Angelic Dreamz">
+		<alias>Angelic</alias>
+		<tier>Silver</tier>
+		<pocName>George Gonzalez</pocName>
+		<pocEmail>george@angelicdreamz.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.angelicdreamz.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Enterprise</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>angelicdreamz.com</ftpUrl>
+		<ftpUser>ang716</ftpUser>
+		<ftpPassword>UdinSg2M8mr4</ftpPassword>
+		<adminUser>tempadmin13</adminUser>
+		<adminPassword>2Recommend01</adminPassword>
+		<apiUserName></apiUserName>
+		<apiKey>38581896433349921385818964333499</apiKey>
+		<cartTheme>v32012</cartTheme>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="true" exclusions="true" replacements="false" rate="daily" hourOfDay="22" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="true" catalog="true" exclusions="true" replacements="false" rate="daily" hourOfDay="15" dayOfWeek="" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Old Time Candy">
+		<alias>OldTimeC</alias>
+		<tier>Silver</tier>
+		<pocName>Don Bridge</pocName>
+		<pocEmail>donb@oldtimecandy.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.oldtimecandy.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Enterprise</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>oldtimecandy.3dcartstores.com</ftpUrl>
+		<ftpUser>olduxgle</ftpUser>
+		<ftpPassword>3985Donato</ftpPassword>
+		<adminUser>seth4tell</adminUser>
+		<adminPassword>brandes11</adminPassword>
+		<apiUserName></apiUserName>
+		<apiKey>39352696650773323393526966507733</apiKey>
+		<cartTheme>default</cartTheme>
+		<exclusionConditions>
+			<condition name="Low Price" fieldName="price" comparison="lt" value="1"/>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="1" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="2" dayOfWeek="Wednesday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="The Watch Prince">
+		<alias>WatchPri</alias>
+		<tier>Intro</tier>
+		<pocName>DOUG MORTENSEN</pocName>
+		<pocEmail>doug@thewatchprince.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.thewatchprince.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>thewatchprince.com</ftpUrl>
+		<ftpUser>theomaay</ftpUser>
+		<ftpPassword>ZMXU6UjODQcl</ftpPassword>
+		<adminUser>Neil4tell</adminUser>
+		<adminPassword>Qazw5610</adminPassword>
+		<apiUserName></apiUserName>
+		<apiKey>62531097526084122625310975260841</apiKey>
+		<cartTheme>v30014</cartTheme>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="2" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="3" dayOfWeek="Saturday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Surropa Fashion">
+		<alias>Surropa</alias>
+		<tier>Nickel</tier>
+		<pocName>Dean Schwartz</pocName>
+		<pocEmail>dean@soboconcepts.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.surropa.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>surropa.com</ftpUrl>
+		<ftpUser>mer</ftpUser>
+		<ftpPassword>3sdfiOPIH59oUI</ftpPassword>
+		<adminUser>4tell001</adminUser>
+		<adminPassword>lofgren1</adminPassword>
+		<apiKey>10465103964581323104651039645813</apiKey>
+		<cartTheme>surropa</cartTheme>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="true" exclusions="true" replacements="false" rate="weekly" hourOfDay="2" dayOfWeek="Tuesday" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="true" catalog="true" exclusions="true" replacements="false" rate="weekly" hourOfDay="2" dayOfWeek="Thursday" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="weekly" hourOfDay="2" dayOfWeek="Monday" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="weekly" hourOfDay="2" dayOfWeek="Wednesday" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="weekly" hourOfDay="2" dayOfWeek="Friday" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="weekly" hourOfDay="2" dayOfWeek="Saturday" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="weekly" hourOfDay="2" dayOfWeek="Sunday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Bound Boxing">
+		<alias>BoundBox</alias>
+		<tier>Intro</tier>
+		<pocName>J.J. Medina Jr.</pocName>
+		<pocEmail>jj@boundboxing.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.boundboxing.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>boundboxing.3dcartstores.com</ftpUrl>
+		<ftpUser>boukts1x</ftpUser>
+		<ftpPassword>h8Fg2wpWt6t8</ftpPassword>
+		<adminUser>4telluser</adminUser>
+		<adminPassword>pass1234</adminPassword>
+		<apiKey>76870302455990219768703024559902</apiKey>
+		<cartTheme>v40001</cartTheme>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="true" exclusions="true" replacements="false" rate="daily" hourOfDay="0" dayOfWeek="" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Blush Beauty">
+		<alias>BlushBea</alias>
+		<tier>Intro</tier>
+		<pocName>Michael Wichmann</pocName>
+		<pocEmail>mwichx@gmail.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>blushbeautystore.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>blushbeautystore.com</ftpUrl>
+		<ftpUser>blu</ftpUser>
+		<ftpPassword>a2asa1</ftpPassword>
+		<adminUser>3dcartadmin9</adminUser>
+		<adminPassword>mango5834</adminPassword>
+		<apiKey>69211449642284321692114496422843</apiKey>
+		<cartTheme>default</cartTheme>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="true" exclusions="true" replacements="false" rate="daily" hourOfDay="5" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="true" catalog="true" exclusions="true" replacements="false" rate="daily" hourOfDay="10" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="true" catalog="true" exclusions="true" replacements="false" rate="daily" hourOfDay="17" dayOfWeek="" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Ergo LCD">
+		<alias>ErgoLCD</alias>
+		<tier>Intro</tier>
+		<pocName>Chris Greiner</pocName>
+		<pocEmail>cgreiner@ergolcd.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.ErgoLCD.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>ErgoLCD.3dcartstores.com</ftpUrl>
+		<ftpUser>ergcuto8</ftpUser>
+		<ftpPassword>1a07BAyhQMid</ftpPassword>
+		<adminUser>amy4tell</adminUser>
+		<adminPassword>2Recommend01</adminPassword>
+		<apiKey>36082864782346321360828647823463</apiKey>
+		<cartTheme>dw</cartTheme>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="0" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="0" dayOfWeek="Wednesday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Prairie Girls Quilt Shop">
+		<alias>ePrairie</alias>
+		<tier>Nickel</tier>
+		<pocName>Rick Douthit</pocName>
+		<pocEmail>buzzword10@gmail.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.e-prairiegirls.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>e-prairiegirls.3dcartstores.com</ftpUrl>
+		<ftpUser>e-p1ktij</ftpUser>
+		<ftpPassword>5j7hupXJGCt2</ftpPassword>
+		<adminUser>NeilLofgren1</adminUser>
+		<adminPassword>4Tell4me</adminPassword>
+		<apiKey>81231518843494198123151884349419</apiKey>
+		<cartTheme>Queenco</cartTheme>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<categoryConditions>
+			<condition type="exclude" value="61"/>
+		</categoryConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="true" exclusions="true" replacements="false" rate="daily" hourOfDay="18" dayOfWeek="" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Adventures in Homebrewing">
+		<alias>HomeBrew</alias>
+		<tier>Nickel</tier>
+		<pocName>Jim Polak</pocName>
+		<pocEmail>JimmyP@homebrewing.org</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.HomeBrewing.org</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>HomeBrewing.3dcartstores.com</ftpUrl>
+		<ftpUser>hom</ftpUser>
+		<ftpPassword>nhas82h</ftpPassword>
+		<adminUser>Amy4tell</adminUser>
+		<adminPassword>2Recommend01</adminPassword>
+		<apiKey>23425563068653320234255630686533</apiKey>
+		<cartTheme>default</cartTheme>
+		<exclusionConditions>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+			<condition name="Includes" fieldName="extra_field_1" comparison="ne" value="'include_4_tell'"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="3" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="3" dayOfWeek="Wednesday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Air Sponge">
+		<alias>FilterFa</alias>
+		<tier>Intro</tier>
+		<pocName>Richard Rosen</pocName>
+		<pocEmail>airspongefilters@aol.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.filterfactory.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>filterfactory.3dcartstores.com</ftpUrl>
+		<ftpUser>filvzatt</ftpUser>
+		<ftpPassword>OYdiG32NtZyD</ftpPassword>
+		<adminUser>4tellamy</adminUser>
+		<adminPassword>7grapes</adminPassword>
+		<apiKey>11767175656509120117671756565091</apiKey>
+		<cartTheme>v32007</cartTheme>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="3" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="3" dayOfWeek="Wednesday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Historical Board Gaming">
+		<alias>HistBoar</alias>
+		<tier>Intro</tier>
+		<pocName>Doug Friend</pocName>
+		<pocEmail>info@historicalboardgaming.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.historicalboardgaming.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>historicalboardgaming.com</ftpUrl>
+		<ftpUser>hislmjgk</ftpUser>
+		<ftpPassword>k4OFZX3H6dxy</ftpPassword>
+		<adminUser>0TechSupport0</adminUser>
+		<adminPassword>392817456qpzm</adminPassword>
+		<apiKey>37794870175916422377948701759164</apiKey>
+		<cartTheme>v30023</cartTheme>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="4" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="4" dayOfWeek="Wednesday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="The Trout Spot">
+		<alias>Troutspt</alias>
+		<tier>Intro</tier>
+		<pocName>Richard Desrosiers</pocName>
+		<pocEmail>info@thetroutspot.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.thetroutspot.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>thetroutspot.3dcartstores.com</ftpUrl>
+		<ftpUser>tts</ftpUser>
+		<ftpPassword>st83f1x</ftpPassword>
+		<adminUser>TempAdmin1</adminUser>
+		<adminPassword>64JKb5Nc</adminPassword>
+		<apiKey>40268726707877221402687267078772</apiKey>
+		<cartTheme>v30025</cartTheme>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="4" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="4" dayOfWeek="Wednesday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Isopure Water">
+		<alias>Isopure</alias>
+		<tier>Intro</tier>
+		<pocName>Tai Pham</pocName>
+		<pocEmail>ttpham41@gmail.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.isopurewater.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>173.192.20.253</ftpUrl>
+		<ftpUser>buyxqf4i</ftpUser>
+		<ftpPassword>clirtzFt6Lgu</ftpPassword>
+		<adminUser>temporary4tell</adminUser>
+		<adminPassword>4tellwater</adminPassword>
+		<apiKey>25698463929261220256984639292612</apiKey>
+		<cartTheme>v32028</cartTheme>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="4" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="4" dayOfWeek="Wednesday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="FeldFire">
+		<alias>feldfire</alias>
+		<tier>Nickel</tier>
+		<pocName>John Feld</pocName>
+		<pocEmail>john@feldfire.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.feldfire.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>feldfire.3dcartstores.com</ftpUrl>
+		<ftpUser>fel752</ftpUser>
+		<ftpPassword>PaDedBzvI122</ftpPassword>
+		<adminUser>3dcartadmin</adminUser>
+		<adminPassword>JOhn2569</adminPassword>
+		<apiKey>14494781377667211449478137766721</apiKey>
+		<cartTheme>default</cartTheme>
+		<exclusionConditions>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="5" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="5" dayOfWeek="Wednesday" weekOfMonth="" />
+	</client>
+	<client enabled="false" name="SaddleryUSA">
+		<alias>Saddlery</alias>
+		<tier>Bronze</tier>
+		<pocName>Daniel Pride</pocName>
+		<pocEmail>danielspride20@yahoo.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.SaddleryUSA.com</storeUrl>
+		<cartType>PrestaShop</cartType>
+		<cartLevel></cartLevel>
+		<cartVersion></cartVersion>
+		<adminUser></adminUser>
+		<adminPassword></adminPassword>
+		<apiUserName></apiUserName>
+		<apiKey></apiKey>
+	</client>
+	<client enabled="true" name="Violet and Company">
+		<alias>Violeta</alias>
+		<tier>Intro</tier>
+		<pocName>Ellen Petitjean</pocName>
+		<pocEmail>sales@violetandcompany.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.violetandcompany.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>violetandcompany.com</ftpUrl>
+		<ftpUser>vioxstu5</ftpUser>
+		<ftpPassword>Rqhdqv4aYZEH</ftpPassword>
+		<adminUser>NeilLofgren1</adminUser>
+		<adminPassword>aurore98</adminPassword>
+		<apiKey>38524515790370119385245157903701</apiKey>
+		<cartTheme>v32014</cartTheme>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="5" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="5" dayOfWeek="Wednesday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Texas Susannies">
+		<alias>TexasSus</alias>
+		<tier>Intro</tier>
+		<pocName>Lori Reiser</pocName>
+		<pocEmail>sales@texassusannie.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.texassusannie.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>texassusannie.3dcartstores.com</ftpUrl>
+		<ftpUser>txs</ftpUser>
+		<ftpPassword>82j72jx7h2</ftpPassword>
+		<adminUser>4TellTemp</adminUser>
+		<adminPassword>4Telltemp</adminPassword>
+		<apiKey>10731086086246322107310860862463</apiKey>
+		<cartTheme>layout2</cartTheme>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="5" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="5" dayOfWeek="Wednesday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Ring of Fire">
+		<alias>RingofFi</alias>
+		<tier>Intro</tier>
+		<pocName>Rob Watson</pocName>
+		<pocEmail>rob@rof.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.rof.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>rof.com</ftpUrl>
+		<ftpUser>rof84jb7</ftpUser>
+		<ftpPassword>u6mMvlVmajuC</ftpPassword>
+		<adminUser>4telltemp</adminUser>
+		<adminPassword>ROF4tell</adminPassword>
+		<apiKey>32069129607175421320691296071754</apiKey>
+		<cartTheme>V30025</cartTheme>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="6" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="6" dayOfWeek="Wednesday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Deep Memories">
+		<alias>DeepMem</alias>
+		<tier>Nickel</tier>
+		<pocName>Bill Urban</pocName>
+		<pocEmail>bill@BMWebEnterprises.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.deepmemories.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Enterprise</cartLevel>
+		<ftpType>Explicit FTP over TLS</ftpType>
+		<ftpUrl>50.97.134.123</ftpUrl>
+		<ftpUser>deepmemories.com|dee25375325</ftpUser>
+		<ftpPassword>NzPZYV5Jt9Zv</ftpPassword>
+		<adminUser>4tellAdmin</adminUser>
+		<adminPassword>4Telladmin</adminPassword>
+		<apiKey>41114722105427921411147221054279</apiKey>
+		<cartTheme>CustomDM2</cartTheme>
+		<secondAttribute enabled="false"/>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<categoryConditions>
+			<condition type="ignore" value="4"/>
+			<condition type="ignore" value="45"/>
+			<condition type="ignore" value="49"/>
+		</categoryConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="6" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="6" dayOfWeek="Wednesday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Shop Masc">
+		<alias>ShopMasc</alias>
+		<tier>Intro</tier>
+		<pocName>Jamie</pocName>
+		<pocEmail>info@shopmasc.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.shopmasc.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>shopmasc.3dcartstores.com</ftpUrl>
+		<ftpUser>shoazduy</ftpUser>
+		<ftpPassword>cYGpLo9TPZor</ftpPassword>
+		<adminUser>sethbrandes4</adminUser>
+		<adminPassword>seth4tell</adminPassword>
+		<apiKey>11041623545788722110416235457887</apiKey>
+		<cartTheme>default</cartTheme>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+			<condition name="Excludes" fieldName="extra_field_1" comparison="eq" value="'exclude_4_tell'"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="20" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="20" dayOfWeek="Wednesday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Ranger Offroad">
+		<alias>RangerOf</alias>
+		<tier>Bronze</tier>
+		<pocName>Michael Meixner</pocName>
+		<pocEmail>mhmeixner@gmail.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.rangeroffroad.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>rangeroffroad.com</ftpUrl>
+		<ftpUser>ranyi10q</ftpUser>
+		<ftpPassword>0yEjPolLbzoa</ftpPassword>
+		<adminUser>mmeixner123</adminUser>
+		<adminPassword>6Wd5it6y</adminPassword>
+		<apiKey>75121125938909121751211259389091</apiKey>
+		<cartTheme>v32013</cartTheme>
+		<exclusionConditions>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<filterConditions>
+			<condition	name="Ford" fieldName="name" comparison="contains" value="Ford"/>
+			<condition	name="Dodge" fieldName="name" comparison="contains" value="Dodge"/>
+			<condition	name="Chevy" fieldName="name" comparison="contains" value="Chev"/>
+			<condition	name="GM" fieldName="name" comparison="contains" value="GM"/>
+			<condition	name="Toyota" fieldName="name" comparison="contains" value="Toyota"/>
+			<condition	name="Kawasaki" fieldName="name" comparison="contains" value="Kawasaki"/>
+			<condition	name="Land Rover" fieldName="name" comparison="contains" value="Land Rover"/>
+			<condition	name="Jeep" fieldName="name" comparison="contains" value="Jeep"/>
+			<condition	name="Hummer" fieldName="name" comparison="contains" value="Hummer"/>
+		</filterConditions>
+		<universalFilterName>Universal</universalFilterName>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="20" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="20" dayOfWeek="Wednesday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Banner Therapy">
+		<alias>BannerTh</alias>
+		<tier>Bronze</tier>
+		<pocName>Robert Allison</pocName>
+		<pocEmail>robert@bannertherapy.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.bannertherapy.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>Explicit FTP over TLS</ftpType>
+		<ftpUrl>bannertherapy.3dcartstores.com</ftpUrl>
+		<ftpUser>bannertherapy</ftpUser>
+		<ftpPassword>3gStGOfDOYlQ</ftpPassword>
+		<adminUser>4telladmin</adminUser>
+		<adminPassword>2Recommend01</adminPassword>
+		<apiKey>25687058259989922256870582599899</apiKey>
+		<cartTheme>v32010</cartTheme>
+		<exclusionConditions>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="21" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="21" dayOfWeek="Wednesday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Rockwell US">
+		<alias>Rockwell</alias>
+		<tier>Nickel</tier>
+		<pocName>Anikka Rockwell</pocName>
+		<pocEmail>a@rockwellnutrition.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.rockwellnutrition.com/</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>www.rockwellnutrition.com</ftpUrl>
+		<ftpUser>row</ftpUser>
+		<ftpPassword>rwkh4920Dfe51</ftpPassword>
+		<adminUser>sethbrandes97</adminUser>
+		<adminPassword>4Tell2011</adminPassword>
+		<apiKey>31888092243175221318880922431752</apiKey>
+		<cartTheme>default</cartTheme>
+		<exclusionConditions>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<categoryConditions>
+			<condition type="exclude" value="501"/>
+		</categoryConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="true" exclusions="true" replacements="false" rate="daily" hourOfDay="21" dayOfWeek="" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Rockwell CA">
+		<alias>RockwlCA</alias>
+		<tier>Nickel</tier>
+		<pocName>Anikka Rockwell</pocName>
+		<pocEmail>a@rockwellnutrition.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.rockwellnutrition-canada.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>www.rockwellnutrition-canada.com</ftpUrl>
+		<ftpUser>roc</ftpUser>
+		<ftpPassword>cArw93hfp2Ft8</ftpPassword>
+		<adminUser>sethbrandes97</adminUser>
+		<adminPassword>4Tell2011</adminPassword>
+		<apiKey>17668443738654219176684437386542</apiKey>
+		<cartTheme>default</cartTheme>
+		<exclusionConditions>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<categoryConditions>
+			<condition type="exclude" value="178"/>
+		</categoryConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="true" exclusions="true" replacements="false" rate="daily" hourOfDay="21" dayOfWeek="" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Organic Bug">
+		<alias>OrganicB</alias>
+		<tier>Intro</tier>
+		<pocName>Peggy English</pocName>
+		<pocEmail>peggy@organicbug.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.organicbug.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>organicbug.com</ftpUrl>
+		<ftpUser>organicbug.com|org0ryxp1450</ftpUser>
+		<ftpPassword>6uAo0xD9oHg2</ftpPassword>
+		<adminUser>Temp4tell</adminUser>
+		<adminPassword>temp4tell</adminPassword>
+		<apiKey>69308384811133820693083848111338</apiKey>
+		<cartTheme>default</cartTheme>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="true" exclusions="true" replacements="false" rate="daily" hourOfDay="22" dayOfWeek="" weekOfMonth="" />
+	</client>
+	<client enabled="false" name="Virtual Off Road Center">
+		<alias>VOffRoad</alias>
+		<tier>Intro</tier>
+		<pocName>Brian Wysocki</pocName>
+		<pocEmail>virtualoffroad@gmail.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>virtualoffroadcenter.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>FTPES</ftpType>
+		<ftpUrl>virtualoffroadcenter.com</ftpUrl>
+		<ftpUser>virtualoffroadcenter.com|virs0j4d950</ftpUser>
+		<ftpPassword>8cSe8YyrVpSB</ftpPassword>
+		<adminUser>4telladmin</adminUser>
+		<adminPassword>2Recommend01</adminPassword>
+		<apiKey>33775171793470121337751717934701</apiKey>
+		<cartTheme>v32013</cartTheme>
+		<exclusionConditions>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="22" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="22" dayOfWeek="Wednesday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="NYManSuits">
+		<alias>NYMsuits</alias>
+		<tier>Intro</tier>
+		<pocName>Jay Rodriquez</pocName>
+		<pocEmail>jay.nymsuits@gmail.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.NYMsuits.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>NYMsuits.3dcartstores.com</ftpUrl>
+		<ftpUser>nymggz9e</ftpUser>
+		<ftpPassword>Z6BqenX93fCp</ftpPassword>
+		<adminUser>nym4tell</adminUser>
+		<adminPassword>2Recommend01</adminPassword>
+		<apiKey>23161877902264223231618779022642</apiKey>
+		<cartTheme>v30014</cartTheme>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="22" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="22" dayOfWeek="Friday" weekOfMonth="" />
+	</client>
+	<client enabled="true" name="Columbia Sprotswear USA">
+		<alias>Columbia</alias>
+		<uploadIP>216.52.184.3</uploadIP>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.columbia.com</storeUrl>
+		<cartType>DemandWare</cartType>
+	</client>
+	<client enabled="true" name="Caren Online"> <!-- cannot access API because not Gold on Volusion -->
+		<alias>CarenOnl</alias>
+		<tier>Intro</tier>
+		<pocName>Ellen Holder</pocName>
+		<pocEmail>ellen@carenonline.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.carenonline.com</storeUrl>
+		<cartType>Volusion</cartType>
+		<cartLevel></cartLevel>
+		<cartVersion></cartVersion>
+		<cartTheme>custom</cartTheme>
+		<adminUser>4tell@carenonline.com</adminUser>
+		<adminPassword>4tell</adminPassword>
+		<apiUserName>4tell@carenonline.com</apiUserName>
+		<apiKey></apiKey>
+		<ftpUrl>www.carenonline.com</ftpUrl>
+		<ftpUser>4QKagPrKsAeP</ftpUser>
+		<ftpPassword>soVukugyfT4R</ftpPassword>
+	    <photoBaseUrl></photoBaseUrl> 
+		<exclusionConditions>
+			<condition name="Free" fieldName="productprice" comparison="lt" value=".01"/>
+			<condition name="Out Of Stock" fieldName="stockstatus" comparison="lt" value="1"/>
+			<condition name="Hidden" fieldName="hideproduct" comparison="eq" value="Y"/>
+			<condition name="trial" fieldName="productcode" comparison="startsWith" value="TM-"/>
+		</exclusionConditions>
+	</client>
+	<client enabled="true" name="L’arte dell’olivo">
+		<alias>LArtOliv</alias>
+		<tier>Intro</tier>
+		<pocName>Keith von Barkenhagen</pocName>
+		<pocEmail>keith@larte.us</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.lartedellolivo.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>lartedellolivo.3dcartstores.com</ftpUrl>
+		<ftpUser>art653</ftpUser>
+		<ftpPassword>BHbFfJnLVMyG</ftpPassword>
+		<adminUser>4TellSupport</adminUser>
+		<adminPassword>4yBFn19l</adminPassword>
+		<apiKey>48138605319402214813860531940221</apiKey>
+		<cartTheme>v32017</cartTheme>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="20" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="20" dayOfWeek="Friday" weekOfMonth="" />
+	</client>
+	<client enabled="True" name="BJs Bariatrics">
+		<alias>BjsBaria</alias>
+		<tier>Intro</tier>
+		<pocName></pocName>
+		<pocEmail></pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.bjsbariatrics.com</storeUrl>
+		<cartType>MivaMerchant</cartType>
+		<cartLevel></cartLevel>
+		<cartVersion></cartVersion>
+		<cartTheme></cartTheme>
+		<adminUser></adminUser>
+		<adminPassword></adminPassword>
+		<apiUserName></apiUserName>
+		<apiKey></apiKey>
+		<ftpUrl>www..com</ftpUrl>
+		<ftpUser></ftpUser>
+		<ftpPassword></ftpPassword>
+	    <photoBaseUrl></photoBaseUrl> 
+		<exclusionConditions>
+			<condition name="Free" fieldName="productprice" comparison="lt" value=".01"/>
+			<condition name="Out Of Stock" fieldName="stockstatus" comparison="lt" value="1"/>
+			<condition name="Hidden" fieldName="hideproduct" comparison="eq" value="Y"/>
+		</exclusionConditions>
+	</client>
+	<client enabled="true" name="BestPysanky">
+		<alias>BestPysa</alias>
+		<tier>Intro</tier>
+		<pocName>Sergiy Lishchuk</pocName>
+		<pocEmail>support@bestpysanky.com</pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.BestPysanky.com</storeUrl>
+		<cartType>Volusion</cartType>
+		<cartLevel></cartLevel>
+		<cartVersion></cartVersion>
+		<cartTheme>o2i-01282012</cartTheme>
+		<adminUser>amy@4-tell.com</adminUser>
+		<adminPassword>Ba3BmqN7snk</adminPassword>
+		<apiUserName>amy@4-tell.com</apiUserName>
+		<apiKey>485B3B47458B2E8DB2CF6A9B4A4EC1757614AF741ADA3EF96DCE5ABD365C6760</apiKey>
+		<ftpUrl>BestPysanky.com</ftpUrl>
+		<ftpUser>P7zS9DdGPJea</ftpUser>
+		<ftpPassword>3kvp3cWz</ftpPassword>
+	    <photoBaseUrl>https://a248.e.akamai.net/origin-cdn.volusion.com/</photoBaseUrl> 
+		<exclusionConditions>
+			<condition name="Free" fieldName="productprice" comparison="lt" value=".01"/>
+			<condition name="Out Of Stock" fieldName="stockstatus" comparison="lt" value="1"/>
+			<condition name="Hidden" fieldName="hideproduct" comparison="eq" value="Y"/>
+		</exclusionConditions>
+	    <!-- verify photo base url -->
+	</client>
+	
+
+	<!-- magento -->
+	<client enabled="false" name="">
+		<alias></alias>
+		<tier></tier>
+		<pocName></pocName>
+		<pocEmail></pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www..com</storeUrl>
+		<cartType>Magento</cartType>
+		<cartLevel>Community</cartLevel>
+		<cartVersion>1.5</cartVersion>
+		<adminUser></adminUser>
+		<adminPassword></adminPassword>
+		<apiUserName></apiUserName>
+		<apiKey></apiKey>
+	</client>
+	<!-- 3dCart -->
+	<client enabled="false" name="">
+		<alias></alias>
+		<tier>Intro</tier>
+		<pocName></pocName>
+		<pocEmail></pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www..com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>.3dcartstores.com</ftpUrl>
+		<ftpUser></ftpUser>
+		<ftpPassword></ftpPassword>
+		<adminUser></adminUser>
+		<adminPassword></adminPassword>
+		<apiKey></apiKey>
+		<cartTheme></cartTheme>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="lt" value="1"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<condition name="Hidden" fieldName="hide" comparison="eq" value="1"/>
+			<condition name="Non-Searchable" fieldName="nonsearchable" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadTimer enabled="true" salesUpdate="true" catalog="false" exclusions="true" replacements="false" rate="daily" hourOfDay="21" dayOfWeek="" weekOfMonth="" />
+		<uploadTimer enabled="true" salesUpdate="false" catalog="true" exclusions="false" replacements="false" rate="weekly" hourOfDay="21" dayOfWeek="Wednesday" weekOfMonth="" />
+	</client>
+	<!-- Volusion -->
+	<client enabled="false" name="">
+		<alias></alias>
+		<tier>Intro</tier>
+		<pocName></pocName>
+		<pocEmail></pocEmail>
+		<reportLevel>None</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www..com</storeUrl>
+		<cartType>Volusion</cartType>
+		<cartLevel></cartLevel>
+		<cartVersion></cartVersion>
+		<cartTheme></cartTheme>
+		<adminUser></adminUser>
+		<adminPassword></adminPassword>
+		<apiUserName></apiUserName>
+		<apiKey></apiKey>
+		<ftpUrl>www..com</ftpUrl>
+		<ftpUser></ftpUser>
+		<ftpPassword></ftpPassword>
+	    <photoBaseUrl>https://a248.e.akamai.net/origin-cdn.volusion.com/</photoBaseUrl> 
+		<exclusionConditions>
+			<condition name="Free" fieldName="productprice" comparison="lt" value=".01"/>
+			<condition name="Out Of Stock" fieldName="stockstatus" comparison="lt" value="1"/>
+			<condition name="Hidden" fieldName="hideproduct" comparison="eq" value="Y"/>
+		</exclusionConditions>
+	    <!-- verify photo base url -->
+	</client>
+</clientSettings>

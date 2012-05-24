@@ -1,0 +1,286 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<clientSettings>
+	<client>
+		<!-- Trevor -->
+		<alias>Trevor</alias>
+		<pocName>Trevor Orr</pocName>
+		<pocEmail>fractorr@gmail.com</pocEmail>
+		<reportLevel>Error</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>thefamilywoodshed.gostorego.com</storeUrl>
+		<cartType>Magento</cartType>
+		<apiUserName>4tell</apiUserName>
+		<apiKey>predict</apiKey>
+		<cartLevel>Go</cartLevel>
+		<exclusionConditions>
+			<condition name="status" fieldName="status" comparison="eq" value="0"/>
+			<condition name="visibility" fieldName="visibility" comparison="eq" value="0"/>
+			<condition name="price" fieldName="price" comparison="lt" value="0.01"/>
+		</exclusionConditions>
+		<uploadFrequency enabled="false" rate="monthly" hourOfDay="3" dayOfWeek="monday" weekOfMonth="2" />
+	</client>
+	<client>
+		<!-- White Salmon Tea -->
+		<alias>WSTea</alias>
+		<pocName>Neil</pocName>
+		<pocEmail>neil@4-tell.com</pocEmail>
+		<reportLevel>Error</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>whitesalmontea.gostorego.com</storeUrl>
+		<cartType>Magento</cartType>
+		<apiUserName>4tell</apiUserName>
+		<apiKey>predict</apiKey>
+		<cartLevel>Go</cartLevel>
+		<exclusionConditions>
+			<condition name="status" fieldName="status" comparison="eq" value="0"/>
+			<condition name="visibility" fieldName="visibility" comparison="eq" value="0"/>
+			<condition name="price" fieldName="price" comparison="lt" value="0.01"/>
+		</exclusionConditions>
+		<uploadFrequency enabled="false" rate="monthly" hourOfDay="3" dayOfWeek="monday" weekOfMonth="2" />
+	</client>
+	<client>
+		<!-- Grunt -->
+		<alias>Grunt</alias>
+		<pocName>Kerry Seley</pocName>
+		<pocEmail>kerry@grunt.com</pocEmail>
+		<reportLevel>Error</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.grunt.com</storeUrl>
+		<cartType>Magento</cartType>
+		<apiUserName></apiUserName>
+		<apiKey></apiKey>
+		<cartLevel>Community</cartLevel>
+		<adminUser>4-Tell</adminUser>
+		<adminPassword>Password2011</adminPassword>
+		<ftpType>sftp</ftpType>
+		<ftlUrl>199.204.136.47</ftlUrl>
+		<ftpUser>sgtg10admin</ftpUser>
+		<ftpPassword></ftpPassword>
+		<exclusionConditions>
+			<condition name="status" fieldName="status" comparison="eq" value="0"/>
+			<condition name="visibility" fieldName="visibility" comparison="eq" value="1"/>
+			<condition name="price" fieldName="price" comparison="lt" value="0.01"/>
+			<condition name="exclude_4_tell" fieldName="exclude_4_tell" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadFrequency enabled="false" rate="monthly" hourOfDay="3" dayOfWeek="monday" weekOfMonth="2" />
+	</client>
+	<client>
+		<!-- The Catholic Shop -->
+		<alias>Catholic</alias>
+		<pocName>Josh Gray</pocName>
+		<pocEmail>joshgray@me.com</pocEmail>
+		<reportLevel>Error</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.thecatholicshop.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<apiUserName></apiUserName>
+		<apiKey>38835500888427120388355008884271</apiKey>
+		<cartLevel>Standard</cartLevel>
+		<adminUser>4telladmin</adminUser>
+		<adminPassword>4Recommend</adminPassword>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>thecatholicshop.com</ftpUrl>
+		<ftpUser>thesvcjq</ftpUser>
+		<ftpPassword>GkrmCOvS3GCO</ftpPassword>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="eq" value="0"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadFrequency enabled="true" rate="daily" hourOfDay="3" dayOfWeek="" weekOfMonth="" />
+	</client>
+	<client>
+		<!-- Lukie Games -->
+		<alias>LukieGam</alias>
+		<pocName>Jesse Cover</pocName>
+		<pocEmail>jesse@lukiegames.com</pocEmail>
+		<reportLevel>Error</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.lukiegames.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<apiUserName></apiUserName>
+		<apiKey>23270530960139202327053096013920</apiKey>
+		<cartLevel>Enterprise</cartLevel>
+		<adminUser>4telladmin</adminUser>
+		<adminPassword>4Recommend</adminPassword>
+		<ftpType>ftp</ftpType>
+		<ftpUrl>ftp.lukiegames.com</ftpUrl>
+		<ftpUser>luk818</ftpUser>
+		<ftpPassword>aDoWel2W4cYx</ftpPassword>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="eq" value="0"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadFrequency enabled="true" rate="daily" hourOfDay="6" dayOfWeek="" weekOfMonth="" />
+	</client>
+	<client>
+		<!-- Preemie Store -->
+		<alias>PreemieS</alias>
+		<pocName>Pat Cotter</pocName>
+		<pocEmail>pat@preemie.com</pocEmail>
+		<reportLevel>Error</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.preemiestore.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<apiUserName></apiUserName>
+		<apiKey>80589056826288220805890568262882</apiKey>
+		<cartLevel>Enterprise</cartLevel>
+		<adminUser>4TellAmy</adminUser>
+		<adminPassword>Preemie1</adminPassword>
+		<ftpType>ftp</ftpType>
+		<ftlUrl>preemieshop.com</ftlUrl>
+		<ftpUser>pre</ftpUser>
+		<ftpPassword>98g87say2</ftpPassword>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="eq" value="0"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadFrequency enabled="true" rate="daily" hourOfDay="2" dayOfWeek="" weekOfMonth="" />
+	</client>
+	<client>
+		<!-- USCutter -->
+		<alias>USCutter</alias>
+		<pocName>Jaster Nyasulu</pocName>
+		<pocEmail>JasterN@uscutter.com</pocEmail>
+		<reportLevel>Error</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.uscutter.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<apiUserName></apiUserName>
+		<apiKey>24691541101758822246915411017588</apiKey>
+		<cartLevel>Enterprise</cartLevel>
+		<adminUser>amy4tell</adminUser>
+		<adminPassword>4telladmin</adminPassword>
+		<ftpType>ftp</ftpType>
+		<ftlUrl>uscutterdirect.3dcartstores.com</ftlUrl>
+		<ftpUser>usc</ftpUser>
+		<ftpPassword>98y279ys72</ftpPassword>
+		<exclusionConditions>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadFrequency enabled="true" rate="daily" hourOfDay="1" dayOfWeek="" weekOfMonth="" />
+	</client>
+	<client>
+		<!-- OneStopEquineShop -->
+		<alias>OneStopE</alias>
+		<pocName>Alexander Lans</pocName>
+		<pocEmail>alexander@foalgroup.com</pocEmail>
+		<reportLevel>Error</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.onestopequineshop.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<apiUserName></apiUserName>
+		<apiKey>90279104532937121902791045329371</apiKey>
+		<cartLevel>Standard</cartLevel>
+		<adminUser>4Telltest</adminUser>
+		<adminPassword>1stopequine</adminPassword>
+		<cartTheme>OneStop</cartTheme>
+		<ftpType>ftp</ftpType>
+		<ftlUrl>onestopequineshop.3dcartstores.com</ftlUrl>
+		<ftpUser>oneqkkoa</ftpUser>
+		<ftpPassword>SyDIpHcgjz1P</ftpPassword>
+		<secondAttribute enabled="true" fieldName="manufacturer"/>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="eq" value="0"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<uploadFrequency enabled="true" rate="daily" hourOfDay="4" dayOfWeek="" weekOfMonth="" />
+		</exclusionConditions>
+	</client>
+	<client>
+		<!-- AirStrikeInc -->
+		<alias>AirStrik</alias>
+		<pocName>Jason Fetko</pocName>
+		<pocEmail>info@airstrikeinc.com</pocEmail>
+		<reportLevel>Error</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.airstrikeinc.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<apiUserName></apiUserName>
+		<apiKey>57544572044562321575445720445623</apiKey>
+		<cartLevel>Standard</cartLevel>
+		<adminUser>4telluser</adminUser>
+		<adminPassword>4telladmin</adminPassword>
+		<cartTheme>v32023</cartTheme>
+		<ftpType>ftp</ftpType>
+		<ftlUrl>airstrikeinc.3dcartstores.com</ftlUrl>
+		<ftpUser>air9ritj</ftpUser>
+		<ftpPassword>J059ftSlbq5O</ftpPassword>
+		<secondAttribute enabled="false"/>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="eq" value="0"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+			<uploadFrequency enabled="true" rate="daily" hourOfDay="12" dayOfWeek="" weekOfMonth="" />
+		</exclusionConditions>
+	</client>
+	<client>
+		<!-- SturdyBuiltOnline -->
+		<alias>SturdyBu</alias>
+		<pocName>JT</pocName>
+		<pocEmail>sales@sturdybuiltonline.com</pocEmail>
+		<reportLevel>Error</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.SturdyBuiltOnline.com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftlUrl>sturdybuiltonline.com</ftlUrl>
+		<ftpUser>stu</ftpUser>
+		<ftpPassword>n2jka8jm7</ftpPassword>
+		<adminUser>3dcartadmin</adminUser>
+		<adminPassword>4tellpassw</adminPassword>
+		<apiUserName></apiUserName>
+		<apiKey>57705101260572225770510126057222</apiKey>
+		<cartTheme>sturdybuiltonline</cartTheme>
+		<exclusionConditions>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadFrequency enabled="true" rate="daily" hourOfDay="1" dayOfWeek="" weekOfMonth="" />
+	</client>
+	<client>
+		<!-- JB Prince -->
+		<alias>JBPrince</alias>
+		<pocName>Gary Lamb</pocName>
+		<pocEmail>gary.lamb@websitepipeline.com</pocEmail>
+		<reportLevel>Error</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www.JBPrince.com</storeUrl>
+		<cartType>WebsitePipeline</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftlUrl>ftp.websitepipeline.com/jbprince/4tell/</ftlUrl>
+		<ftpUser>4tell</ftpUser>
+		<ftpPassword>4telljbp001</ftpPassword>
+		<adminUser></adminUser>
+		<adminPassword></adminPassword>
+		<apiUserName></apiUserName>
+		<apiKey></apiKey>
+		<cartTheme></cartTheme>
+		<exclusionConditions>
+		</exclusionConditions>
+		<uploadFrequency enabled="false" rate="weekly" hourOfDay="3" dayOfWeek="Monday" weekOfMonth="" />
+	</client>
+	<client>
+		<!-- NEW -->
+		<alias></alias>
+		<pocName></pocName>
+		<pocEmail></pocEmail>
+		<reportLevel>Error</reportLevel>
+		<monthsToExport>18</monthsToExport>
+		<storeUrl>www..com</storeUrl>
+		<cartType>ThreeDCart</cartType>
+		<cartLevel>Standard</cartLevel>
+		<ftpType>ftp</ftpType>
+		<ftlUrl>.3dcartstores.com</ftlUrl>
+		<ftpUser></ftpUser>
+		<ftpPassword></ftpPassword>
+		<adminUser></adminUser>
+		<adminPassword></adminPassword>
+		<apiUserName></apiUserName>
+		<apiKey></apiKey>
+		<cartTheme></cartTheme>
+		<exclusionConditions>
+			<condition name="Out Of Stock" fieldName="stock" comparison="eq" value="0"/>
+			<condition name="Not For Sale" fieldName="notforsale" comparison="eq" value="1"/>
+		</exclusionConditions>
+		<uploadFrequency enabled="true" rate="daily" hourOfDay="3" dayOfWeek="" weekOfMonth="" />
+	</client>
+</clientSettings>
