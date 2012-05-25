@@ -102,7 +102,7 @@ namespace _4_Tell
 
 		public string ToString(string delimiter = "\t", string newLine = "\r\n")
 		{
-			return string.Format("{2}{0}{3}{0}{4}{0}{5}{1}", delimiter, newLine, OldId, NewId);
+			return string.Format("{2}{0}{3}{1}", delimiter, newLine, OldId, NewId);
 		}
 
 		static public string Header(string delimiter = "\t", string newLine = "\r\n")

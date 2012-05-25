@@ -28,6 +28,11 @@ namespace _4_Tell
 		private IEnumerable<XElement> m_catalogXml = null;
 		private IEnumerable<XElement> m_categoryXml = null;
 
+		//making exclusions and replacements global so they can be filled while getting the catalog
+		private List<ExclusionRecord> m_exclusionList = null;
+		private List<ReplacementRecord> m_replacementList = null;
+
+
 		public XmlDocument GetXMLFromURL(string APIURL)
 		{
 			XmlDocument APIDoc = null;
@@ -158,7 +163,7 @@ namespace _4_Tell
 
 			//Note: the following attempts at getting custom results did not return category ids
 			//			only the generic request was able to get the ids
-			//			downside is that the generic request does not get all fields, so we may need to make a second request per item to get missing fields
+			//			downside is that the generic request does not get all fields, so we have to make a second request per item to get missing fields
 			//string query = "EDI_Name=Generic\\Products&SELECT_Columns=p.HideProduct,p.IsChildOfProductCode,p.ProductCode,p.ProductID,p.ProductName,p.ProductPopularity,p.StockStatus,p.ProductUrl,p.PhotoUrl,pe.Hide_When_OutOfStock,pe.ProductCategory,pe.ProductManufacturer,pe.PhotoURL_Small,pe.ProductPrice,pe.SalePrice,pe.UPC_code,pe.Google_Gender";
 			//string query = "EDI_Name=Generic\\Products&SELECT_Columns=*";
 			string query = null; 
@@ -185,7 +190,7 @@ namespace _4_Tell
 			string tempDisplay = ProgressText;
 
 			//any extra fields not in the standard export will need to be requested from the API for each product
-			string extraFields = "p.Photos_Cloned_From";  //special case needed to find images for some products
+			string extraFields = "p.Photos_Cloned_From,p.IsChildOfProductCode";  //special cases needed to find images and remove children
 			List<string> extraFieldList = GetRuleFields();
 			if (extraFieldList.Count > 0)
 			{
@@ -198,6 +203,8 @@ namespace _4_Tell
 				//A more robust solution would be to compile local lists of fields in each Volusion table and check against the lists
 			}
 
+			//create new replacement list in case child items are found
+			m_replacementList = new List<ReplacementRecord>();
 			int rows = 0;
 			foreach (var product in m_catalogXml)
       {
@@ -244,6 +251,12 @@ namespace _4_Tell
 					catch
 					{ }
 				}
+
+				//check to make sure this isn't a child
+				string parentID = Client.GetValue(product, "IsChildOfProductCode");
+				if ((parentID.Length > 0) && !parentID.Equals(p.ProductId)) //child so add to replacements
+					m_replacementList.Add(new ReplacementRecord { OldId = p.ProductId, NewId = parentID });
+
 				//get the image link
 				p.ImageLink = string.Empty;
 				string imageID = Client.GetValue(product,"Photos_Cloned_From");
@@ -323,8 +336,7 @@ namespace _4_Tell
 
     protected override string GetExclusions()
     {
-			//NOTE: GetCatalog shoudld be called before GetExclusions in case there are any categories excluded
-
+			//NOTE: GetCatalog must be called before GetExclusions in case there are any categories excluded
 			if (!m_exclusionsEnabled)
 				return "Exclusions disabled"; //nothing to do
 			m_exclusionsEnabled = false;
@@ -341,11 +353,13 @@ namespace _4_Tell
 				catExclusions = m_catConditions.GetExcludedItems();
 
 			//compile exclusion list
-			var exclusions = new List<ExclusionRecord>();
+			if (m_exclusionList == null)
+				m_exclusionList = new List<ExclusionRecord>();
+
 			if ((catExclusions != null) && (catExclusions.Count > 0))
 			{
 				foreach (string id in catExclusions.Distinct()) //distinct to avoid duplicates
-					exclusions.Add(new ExclusionRecord { Id = id });
+					m_exclusionList.Add(new ExclusionRecord { Id = id });
 				m_exclusionsEnabled = true;
 			}
 
@@ -354,7 +368,7 @@ namespace _4_Tell
 
 			//upload to 4-Tell
 			ProgressText = tempDisplay + result + "Uploading...";
-			result += m_boostService.WriteTable(m_alias, ExclusionFilename, exclusions);
+			result += m_boostService.WriteTable(m_alias, ExclusionFilename, m_exclusionList);
 
 			ProgressText = tempDisplay + result;
 			return result;
@@ -367,41 +381,10 @@ namespace _4_Tell
 			string tempDisplay = ProgressText;
 			ProgressText += "Exporting...";
 
-			var replacements = new List<ReplacementRecord>(); 
+			if (m_replacementList == null)
+				m_replacementList = new List<ReplacementRecord>(); 
 
-			//first check for any child products in the catalog
-			var childItems = m_catalogXml.Where(x => Client.GetValue(x, "IsChildOfProductCode").Length > 0).Select(x =>
-				new ReplacementRecord
-				{
-					OldId = Client.GetValue(x, "ProductCode"),
-					NewId = Client.GetValue(x, "IsChildOfProductCode")
-				}).ToList();
-
-			if ((childItems != null) && (childItems.Count() > 0))
-				replacements = replacements.Union(childItems).ToList(); //union to avoid duplicates in final list
-			//else
-			//{	
-			//  //Assumption was that all child products have a product code that is in the form of {parentCode}-{childCode}
-			//	//Would be nice but it looks like this is not always true
-			//  var childCodes = Catalog.Where(x => Client.GetValue(x, "ProductCode").Contains('-')).Select(x =>
-			//    Client.GetValue(x, "ProductCode"));
-			//  foreach (string code in childCodes)
-			//  //foreach (var item in Catalog)
-			//  {
-			//    //string code = Client.GetValue(item, "ProductCode");
-			//    int index = code.IndexOf('-');
-			//    //if (index < 0) continue; //not a child
-
-			//    string parent = code.Substring(0, index);
-			//    replacements.Add(new replacementRecord
-			//                  {
-			//                    OldId = code,
-			//                    NewId = parent
-			//                  });
-			//  }
-			//}
-
-			//now check for any replacement rules
+			// check for any replacement rules
 			if (m_replacements != null)
 			{
 				if (m_replacements[0].Type != ReplacementCondition.repType.catalog) //individual item replacement
@@ -416,10 +399,10 @@ namespace _4_Tell
 						var r = new ReplacementRecord();
 						r.OldId = rc.OldName;
 						r.NewId = rc.NewName;
-						replacements.Add(r);
+						m_replacementList.Add(r);
 					}
 				}
-				else //full catalog replacement -- need to retrieve from 3dCart
+				else //full catalog replacement 
 				{
 					//Query the catalog for the data
 					string oldfield = m_replacements[0].OldName;
@@ -432,12 +415,12 @@ namespace _4_Tell
 							var r = new ReplacementRecord();
 							r.OldId = Client.GetValue(item, oldfield);
 							r.NewId = Client.GetValue(item, newfield);
-							replacements.Add(r);
+							m_replacementList.Add(r);
 						}
 					}
 				}
 			}
-			if (replacements.Count < 1)
+			if (m_replacementList.Count < 1)
 			{
 				m_replacementsEnabled = false;
 				return result + "(no data)"; //no data matches rules
@@ -446,7 +429,7 @@ namespace _4_Tell
 
 			//upload to 4-Tell
 			ProgressText = tempDisplay + result + "Uploading...";
-			result += m_boostService.WriteTable(m_alias, ReplacementFilename, replacements);
+			result += m_boostService.WriteTable(m_alias, ReplacementFilename, m_replacementList);
 			ProgressText = tempDisplay + result;
 
 			return result;

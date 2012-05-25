@@ -685,7 +685,7 @@
     <WCFMetadataStorage Include="Service References\ws_3dCartApi\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\CommonTools\CommonTools\DynamicProxy\DynamicProxyLibrary.csproj">
+    <ProjectReference Include="..\CommonTools\DynamicProxy\DynamicProxyLibrary.csproj">
       <Project>{20FD2B93-BD84-48D7-A7FB-4231972D3E26}</Project>
       <Name>DynamicProxyLibrary</Name>
     </ProjectReference>

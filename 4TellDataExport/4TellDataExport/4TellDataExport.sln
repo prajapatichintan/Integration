@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "4TellDataExport", "4TellDataExport.csproj", "{6A1081D5-A587-4E6D-B3A6-E10D8BDF4B5A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamicProxyLibrary", "..\..\CommonTools\CommonTools\DynamicProxy\DynamicProxyLibrary.csproj", "{20FD2B93-BD84-48D7-A7FB-4231972D3E26}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamicProxyLibrary", "..\CommonTools\DynamicProxy\DynamicProxyLibrary.csproj", "{20FD2B93-BD84-48D7-A7FB-4231972D3E26}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
