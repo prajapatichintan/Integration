@@ -177,9 +177,11 @@ using _4_Tell.IO;
 		{
 			if (!IsPostBack)
 			{
-				if (!m_init || (m_clients == null)) Initialize();
+				if (!m_init || (m_clients == null)) 
+                    Initialize();
 
-				if (DropDownListClientAlias.SelectedItem == null) LoadClientList();
+				if (DropDownListClientAlias.SelectedItem == null) 
+                    LoadClientList();
 			}
 		}
 
@@ -201,7 +203,11 @@ using _4_Tell.IO;
 
 		private void LoadClientList()
 		{
+
 			m_aliasList = m_clients.GetAliasList();
+
+            if (m_aliasList.Count == 0) { m_clients.LoadClients(); }
+
 			m_aliasList.Sort();
 			DropDownListClientAlias.DataSource = m_aliasList;
 			DropDownListClientAlias.DataBind();
@@ -312,7 +318,7 @@ using _4_Tell.IO;
 		protected void Button_selections_Click(object sender, EventArgs e)
 		{
 			if (!WorkerDone) return; //only one task at a time
-
+            // run the selection
 			WorkerDone = false;
 			string alias = TextBox_clientAlias.Text;
 			string result = "Extracting data for " + alias + "\n";

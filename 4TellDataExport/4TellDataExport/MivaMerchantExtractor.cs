@@ -17,6 +17,7 @@ namespace _4_Tell
 	using Utilities;
 	using IO;
     using System.Net;
+    using System.Xml;
 
     public class MivaMerchantExtractor : CartExtractor
     {
@@ -444,20 +445,46 @@ namespace _4_Tell
     {
         string storeUrl = @"https://4-tell.coolcommerce.net/mm5/merchant.mvc?Screen=4Tell&ClientAlias=MivaMerc&ServiceKey=W0C4CDD14A!7DAKEaEc561J7&DataGroup=?";
 
-        enum DataGroup { Categories = "CBED", Catalog = "PBED", Sales = "MORD" }; 
+        internal enum DataGroup { Categories, Catalog , Sales };
 
-        internal void GetCatalogData()
+        internal void RequestFromService(DataGroup group)
+        {
+            Uri serviceUri = new Uri(storeUrl + group);
+            WebClient downloader = new WebClient();
+
+            if(group == DataGroup.Catalog)
+                    downloader.OpenReadCompleted += new OpenReadCompletedEventHandler(downloader_OpenCatalogReadCompleted);
+            else if (group == DataGroup.Categories)
+                downloader.OpenReadCompleted += new OpenReadCompletedEventHandler(downloader_OpenCatalogReadCompleted);
+            else if (group == DataGroup.Sales)
+                downloader.OpenReadCompleted += new OpenReadCompletedEventHandler(downloader_OpenCatalogReadCompleted);
+
+
+            downloader.OpenReadAsync(serviceUri);
+        }
+
+        internal void downloader_OpenCatalogReadCompleted(object sender, OpenReadCompletedEventArgs e)
+        {
+            if (e.Error == null)
+            {
+                Stream responseStream =e.Result;
+
+                SetCatalogData(responseStream);
+            }
+        }
+
+        internal void SetCatalogData(Stream Content)
         {
             try
             {
+
                 DataContractJsonSerializer ser = new DataContractJsonSerializer(typeof(CatalogItem));
-                using (FileStream fs = File.OpenRead(@"c:\jsonText.txt"))
-                {
+                
                     //string json = @"{""Name"" : ""My Product""}";
                     //MemoryStream ms = new MemoryStream(Encoding.Unicode.GetBytes(json));
-                    CatalogItem catatlogItem = ser.ReadObject(fs) as CatalogItem;
+                CatalogItem catatlogItem = ser.ReadObject(Content) as CatalogItem;
                     
-                }
+                
             }
             catch (Exception e)
             {

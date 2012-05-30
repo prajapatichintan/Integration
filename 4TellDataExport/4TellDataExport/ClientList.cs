@@ -354,10 +354,12 @@ namespace _4_Tell
 
 		public Client Get(string alias)
 		{
-			foreach (Client c in m_clients)
-				if (c.Alias.Equals(alias))
-					return c;
-			return null; //not found
+            var result = from n in m_clients
+                            where n.Alias.Equals(alias)
+                            select n;
+                         
+            return (Client) result.First();
+
 		}
 
 		public Client Get(int index)
