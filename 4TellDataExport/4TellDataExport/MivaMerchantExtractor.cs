@@ -18,6 +18,10 @@ namespace _4_Tell
 	using IO;
     using System.Net;
     using System.Xml;
+    using _4_Tell.MivaMerchant;
+    using Newtonsoft.Json.Linq;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
 
     public class MivaMerchantExtractor : CartExtractor
     {
@@ -78,7 +82,8 @@ namespace _4_Tell
             get
             {
                 //TODO: get live catalog from site
-                
+                MivaMerchantJsonBridge json = new MivaMerchantJsonBridge();
+                json.RequestFromService(MivaMerchantJsonBridge.DataGroup.Catalog);
 
                 //If no live catalog avaialable, look for a catalog.xml file instead
                 //WARNING: Delete catalog.xml once live catalog is available so connection issue doesn't cause a revert to old data
@@ -447,6 +452,10 @@ namespace _4_Tell
 
         internal enum DataGroup { Categories, Catalog , Sales };
 
+        /// <summary>
+        /// Request handler
+        /// </summary>
+        /// <param name="group"></param>
         internal void RequestFromService(DataGroup group)
         {
             Uri serviceUri = new Uri(storeUrl + group);
@@ -463,27 +472,45 @@ namespace _4_Tell
             downloader.OpenReadAsync(serviceUri);
         }
 
+        /// <summary>
+        /// Async handler
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         internal void downloader_OpenCatalogReadCompleted(object sender, OpenReadCompletedEventArgs e)
         {
             if (e.Error == null)
             {
                 Stream responseStream =e.Result;
-
+                //TODO: figure out which stream has been returned and clall the correct extractor
                 SetCatalogData(responseStream);
             }
         }
 
+        /// <summary>
+        /// Bind catalog data to CatalogItem(s)
+        /// </summary>
+        /// <param name="Content"></param>
         internal void SetCatalogData(Stream Content)
         {
             try
             {
 
                 DataContractJsonSerializer ser = new DataContractJsonSerializer(typeof(CatalogItem));
-                
-                    //string json = @"{""Name"" : ""My Product""}";
-                    //MemoryStream ms = new MemoryStream(Encoding.Unicode.GetBytes(json));
                 CatalogItem catatlogItem = ser.ReadObject(Content) as CatalogItem;
-                    
+
+                CatalogItem ci = new CatalogItem();
+                
+                JsonSerializer serializer = new JsonSerializer();
+                serializer.Converters.Add(new JavaScriptDateTimeConverter());
+                serializer.NullValueHandling = NullValueHandling.Ignore;
+
+                using (StreamWriter sw = new StreamWriter(Content))
+                using (JsonWriter writer = new JsonTextWriter(sw))
+                {
+                    serializer.Serialize(writer, ci);
+                    // {"Expiry":new Date(1230375600000),"Price":0}
+                }
                 
             }
             catch (Exception e)
@@ -496,101 +523,6 @@ namespace _4_Tell
 
     }//END class MivaMerchantJsonBridge
 
-    [Serializable]
-    class CatalogItem
-    {
-        public string Code {get; set; }
-
-        public string SKU { get; set; }
-
-        public string CanonicalCategoryCode { get; set; } // Same as FourTell_CategoryID?
-
-        public string AlternateDisplayPage { get; set; } // Required by 4-Tell
-
-        public string Name { get; set; }  // Required by 4-Tell
-
-        public string Price { get; set; }  // Required by 4-Tell
-
-        public string Cost { get; set; }
-
-        public string Weight { get; set; }
-
-        public string Description { get; set; }
-
-        public string Taxable { get; set; }
-
-        public string ThumbnailImage { get; set; }
-
-        public string FullSizedImage { get; set; }
-
-        public string Active { get; set; } // Required by 4-Tell
-
-        public string Current_Stock { get; set; } // Required by 4-Tell
-
-        /// <summary>
-        /// These fields are required by 4-Tell
-        /// </summary>
-        public string FourTell_ProductID { get { return Name;} } // unique product identifier, listed at the parent product.
-        
-        public string[] FourTell_CategoryIDs {
-            get
-            {
-                var retVal = from s in CanonicalCategoryCode.Split(',')
-                                  select s;
-
-                return retVal.ToArray();
-            }
-        } 
-        
-        public string FourTell_BrandID { get; set; } // manufacturers or brands for each product
-        public decimal FourTell_SalePrice { get; set; }  // Should only contain a value if the item is currently on sale. Otherwise, it should contain an empty string.
-        public string FourTell_Link { get; set; } // link to the product page for the product that the recommendation
-        public string FourTell_ImageLink {get { return ThumbnailImage; } } // link to the thumbnail image of the product that should displayed with the recommendation.
-        public string FourTell_StandardCode { get{ return SKU; }  } // Required: UPC, ISBN, or any other standard code.
-        public string FourTell_ActiveFlag { get { return Active; } } // tracks whether or not an item is active in the store
-        public string FourTell_StockLevel { get { return Current_Stock; } } // If the store actively tracks inventory, then this field should show the number of items available for this product.
-    }
-
-    [Serializable]
-    class Category
-    {
-        public string Code { get; set; }
-
-        public string Name { get; set; }
-
-        public string Active { get; set; }
-
-        public string CategoryHeader { get; set; }
-
-        public string CategoryFooter { get; set; }
-
-        public string METAKeywords { get; set; }
-
-        public string METADescription { get; set; }
-    }
-
-    [Serializable]
-    class Sales
-    {
-        public string OrderNum { get; set; }
- 
-        public string Date { get; set; } // Required by 4-Tell
- 
-        public string CustomerName { get; set; }
- 
-        public string CustomerEmail { get; set; }
- 
-        public string Status { get; set; }
-
-        public string Total { get; set; }
-
-        /// <summary>
-        /// These fields are required by 4-Tell
-        /// </summary>
-        public string FourTell_ProductID { get; set; }
-        public string FourTell_CustomerID { get; set; }
-        public string FourTell_Quantity { get; set; }
-
-    }
+   
 
 }

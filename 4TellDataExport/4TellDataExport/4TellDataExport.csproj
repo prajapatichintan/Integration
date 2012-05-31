@@ -35,6 +35,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\..\..\..\Downloads\Json45r6\Bin\Net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Core" />
@@ -571,6 +574,9 @@
     <Compile Include="MagentoExtractor.cs" />
     <Compile Include="MagentoExtractorStatic.cs" />
     <Compile Include="MivaMerchantExtractor.cs" />
+    <Compile Include="MivaMerchant\CatalogItem.cs" />
+    <Compile Include="MivaMerchant\CategoryItem.cs" />
+    <Compile Include="MivaMerchant\SaleItem.cs" />
     <Compile Include="Replicator.cs" />
     <Compile Include="RestAccess.cs" />
     <Compile Include="Service References\GoStore_Buticul\Reference.cs">
