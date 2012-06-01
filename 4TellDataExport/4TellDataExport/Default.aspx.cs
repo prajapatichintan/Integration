@@ -69,6 +69,7 @@ using _4_Tell.IO;
 							WorkerDone = true;
 							return;
 						}
+
 						m_activeClient.ExtractData(salesUpdate, allSales, catalog); //always try to include exclusions and replacements with the catalog
 						ProgressText = "Extraction complete for " + m_activeClient.Alias;
 					}

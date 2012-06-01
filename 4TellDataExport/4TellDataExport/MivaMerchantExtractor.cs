@@ -83,16 +83,18 @@ namespace _4_Tell
             {
                 //TODO: get live catalog from site
                 MivaMerchantJsonBridge json = new MivaMerchantJsonBridge();
+
                 json.RequestFromService(MivaMerchantJsonBridge.DataGroup.Catalog);
 
                 //If no live catalog avaialable, look for a catalog.xml file instead
                 //WARNING: Delete catalog.xml once live catalog is available so connection issue doesn't cause a revert to old data
-                if (m_catalogXml == null)
-                    m_catalogXml = XElement.Load(m_catalogFilePath);
-                //if (m_categoryXml == null)
-                //  m_categoryXml = LoadXmlFile(m_categoriesFilePath);
-                if (m_categoryDictionary == null)
-                    m_categoryDictionary = LoadTabDelimitedFile(m_categoriesFilePath);
+
+                ////if (m_catalogXml == null)
+                ////    m_catalogXml = XElement.Load(m_catalogFilePath);
+                //////if (m_categoryXml == null)
+                //////  m_categoryXml = LoadXmlFile(m_categoriesFilePath);
+                ////if (m_categoryDictionary == null)
+                ////    m_categoryDictionary = LoadTabDelimitedFile(m_categoriesFilePath);
 
                 return m_catalogXml;
             }
@@ -163,7 +165,7 @@ namespace _4_Tell
             return resultXml;
         }
 
-        protected override string GetCatalog()
+        protected string GetCatalog1()
         {
             string result = "\n" + CatalogFilename + ": ";
             ProgressText += result + "Extracting...";
@@ -428,6 +430,22 @@ namespace _4_Tell
         {
             return Environment.NewLine + "No Manufacturer names exported (names match ids in Miva)";
         }
+
+
+        protected override string GetCatalog()
+        {
+            string result = "\n" + CatalogFilename + ": ";
+            ProgressText += result + "Extracting...";
+            var stopWatch = new StopWatch(true);
+            var products = new List<ProductRecord>();
+
+            MivaMerchantJsonBridge json = new MivaMerchantJsonBridge();
+
+            json.RequestFromService(MivaMerchantJsonBridge.DataGroup.Catalog);
+
+            return "Retreiving from service...";
+        }
+
     }//END class MivaMerhcatExtractor
 
 
@@ -460,16 +478,19 @@ namespace _4_Tell
         {
             Uri serviceUri = new Uri(storeUrl + group);
             WebClient downloader = new WebClient();
+            System.Net.ServicePointManager.ServerCertificateValidationCallback = ((sender, certificate, chain, sslPolicyErrors) => true);
+            Stream responseStream = downloader.OpenRead(serviceUri);
+            SetCatalogData(responseStream);
 
-            if(group == DataGroup.Catalog)
-                    downloader.OpenReadCompleted += new OpenReadCompletedEventHandler(downloader_OpenCatalogReadCompleted);
-            else if (group == DataGroup.Categories)
-                downloader.OpenReadCompleted += new OpenReadCompletedEventHandler(downloader_OpenCatalogReadCompleted);
-            else if (group == DataGroup.Sales)
-                downloader.OpenReadCompleted += new OpenReadCompletedEventHandler(downloader_OpenCatalogReadCompleted);
+            //if(group == DataGroup.Catalog)
+            //        downloader.OpenReadCompleted += new OpenReadCompletedEventHandler(downloader_OpenCatalogReadCompleted);
+            //else if (group == DataGroup.Categories)
+            //    downloader.OpenReadCompleted += new OpenReadCompletedEventHandler(downloader_OpenCatalogReadCompleted);
+            //else if (group == DataGroup.Sales)
+            //    downloader.OpenReadCompleted += new OpenReadCompletedEventHandler(downloader_OpenCatalogReadCompleted);
 
 
-            downloader.OpenReadAsync(serviceUri);
+            //downloader.OpenReadAsync(serviceUri);
         }
 
         /// <summary>
