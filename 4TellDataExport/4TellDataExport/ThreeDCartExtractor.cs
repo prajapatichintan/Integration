@@ -1,21 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml;			//XmlWriter
 using System.Xml.Linq; //XElement
-using System.Xml.Serialization;
-using System.Web;
-using System.Text;			//StringBuilder
-using System.Net;				//HttpWebRequest/Response
-using System.IO;				//StreamReader
-using System.Threading; //Thread
 using System.Diagnostics; //EventlogEntryType
 
 
 namespace _4_Tell
 {
 	using Utilities;
-	using Utilities.DynamicProxyLibrary;
 	using ws_3dCartApi;
 
 	/// <summary>
@@ -24,17 +16,13 @@ namespace _4_Tell
 	public class ThreeDCartExtractor : CartExtractor
 	{
 		#region Internal Parameters
-		private ThreeDCartLevel m_cartLevel;
+		private readonly ThreeDCartLevel m_cartLevel;
 		private readonly string m_imageField;
-		private static object m_3dApiLock = new object();
-
-		//3dCart Parameters
-		private const char m_3dApiKeyDisplay = '*';
-		private const string m_3dAlphaSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-";
+		private static readonly object m_3dApiLock = new object();
 		#endregion
 
 
-		public ThreeDCartExtractor(string alias, XElement settings)	: base(alias, settings)
+		public ThreeDCartExtractor(string alias, XElement settings)	: base(alias, settings, true)
 		{
 			base.ParseSettings(settings);
 
@@ -48,24 +36,22 @@ namespace _4_Tell
 			if (m_imageField.Length < 1) m_imageField = "thumbnail";
 		}
 
-		public override void LogSalesOrder(string orderID)
+		public override void LogSalesOrder(string orderId)
 		{
-			StopWatch stopWatch = new StopWatch(true);
+			var stopWatch = new StopWatch(true);
 			string result = "AutoSalesLog: ";
 			ProgressText = result + "Exporting single sale...";
-			IEnumerable<XElement> queryResults = null;
-			string sqlQuery = "";
 
 			try
 			{
 				//Query 3dCart for the data
-				sqlQuery = "SELECT oi.catalogid, oi.numitems, o.odate, o.ocustomerid, o.oemail, o.orderid\n"
+				string sqlQuery = "SELECT oi.catalogid, oi.numitems, o.odate, o.ocustomerid, o.oemail, o.orderid\n"
 									+ "FROM orders AS o\n"
 									+ "INNER JOIN oitems AS oi\n"
 									+ "ON oi.orderid = o.orderid\n"
-									+ "WHERE o.orderid = " + orderID
+									+ "WHERE o.orderid = " + orderId
 									+ "AND o.order_status <> 7"; //order status of 7 is an incomplete record
-				queryResults = Get3dCartQuery(sqlQuery);
+				IEnumerable<XElement> queryResults = Get3dCartQuery(sqlQuery);
 				if (queryResults == null)
 				{
 					ProgressText = result + "(no data)";
@@ -93,10 +79,8 @@ namespace _4_Tell
 					DateTime date = DateTime.Parse(d);
 
 					//upload to 4-Tell
-					//TODO: add emailHash as persistent user ID
 					UsageLog.Instance.LogSingleAction(m_alias, productID, customerID, quantity, date);
 				}
-				queryResults = null; //no longer needed
 				result += "Complete";
 			}
 			catch (Exception ex)
@@ -120,7 +104,7 @@ namespace _4_Tell
 		{
 			string result = "\n" + CatalogFilename + ": ";
 			ProgressText += result + "Rows to export...";
-			StopWatch pdWatch = new StopWatch(true);
+			var pdWatch = new StopWatch(true);
 
 			//Query 3dCart for the data
 			//Note: Can't query for it all at once (times out on server)
@@ -136,11 +120,11 @@ namespace _4_Tell
 				return result;
 			}
 
-			XElement child = queryResults.First<XElement>();
-			if (child.Element("Expr1000") != null)
-				targetRows = Convert.ToInt32(child.Element("Expr1000").Value);
-			else if (child.Element("field0") != null)
-				targetRows = Convert.ToInt32(child.Element("field0").Value);
+			var child = queryResults.First<XElement>();
+			var rowsXml = child.Element("Expr1000") ?? child.Element("field0");
+			if (rowsXml != null)
+				targetRows = Convert.ToInt32(rowsXml.Value);
+
 			queryResults = null;
 			ProgressText += targetRows.ToString();
 			ProgressText += " (" + pdWatch.Lap() + ")";
@@ -165,20 +149,17 @@ namespace _4_Tell
 				if (queryResults == null)
 					break; //no more data
 
-				int tempCount = queryResults.Count<XElement>();
+				int tempCount = queryResults.Count();
 				if (tempCount > 0)
 				{
-					if (catResults == null)
-						catResults = queryResults;
-					else
-						catResults = catResults.Concat<XElement>(queryResults);
+					catResults = catResults == null ? queryResults : catResults.Concat(queryResults);
 
 					//get the last cat ID from this query so next query can start there
 					XElement x = queryResults.ElementAt(tempCount - 1);
 					catID = Client.GetValue(x, "catalogid");
 
 					//update count
-					catRows = catResults.Count<XElement>();
+					catRows = catResults.Count();
 					ProgressText = tempDisplay2 + catRows.ToString();
 					pdWatch.Lap();
 					ProgressText += " (" + pdWatch.TotalTime + ")";
@@ -200,112 +181,113 @@ namespace _4_Tell
 			int errors = 0;
 			bool hasResults = false;
 			char[] illegalChars = { '\r', '\n'}; //list any illegal characters for the product name here
-			string sqlQueryStart = "SELECT TOP 5000 p.catalogid, p.name, p.price, p.saleprice, p.review_average, p.onsale, p.eproduct_serial"
-														+ ", p." + m_imageField;
-			if (m_secondAttEnabled) sqlQueryStart += ", p." + m_secondAttField;
-			if (m_filtersEnabled) //see if any filters require extra fields to be returned
-			{
-				foreach (Condition c in m_filters)
-				{
-					if (sqlQueryStart.IndexOf(c.FieldName) < 0) //filter specifies a field that needs to be added
-						sqlQueryStart += ", p." + c.FieldName;
-				}
-			}
-			sqlQueryStart += "\nFROM products AS p\n";
-			while (true)
-			{
-				sqlQuery = sqlQueryStart
-									+ "WHERE p.catalogid > " + lastId.ToString() + "\n"
-									+ "ORDER BY p.catalogid";
-				queryResults = Get3dCartQuery(sqlQuery);
-				if (queryResults == null)
-					break; //no more data
 
-				exportedRows += queryResults.Count<XElement>();
-				pdWatch.Lap();
-				ProgressText = tempDisplay1 + exportedRows.ToString();
-				tempDisplay2 = ProgressText;
-				ProgressText += " (" + pdWatch.TotalTime + ")";
-				string productID = "";
-				foreach (XElement product in queryResults)
-				{
-					categorizedRows++;
-					productID = Client.GetValue(product, "catalogid");
-					string name = RemoveIllegalChars(Client.GetValue(product, "name"), illegalChars);
-					try
-					{
-						var p = new ProductRecord
-															{
-																Name = name,
-																ProductId = productID,
-																Link = "product.asp?itemid=" + productID,
-																ImageLink = string.Empty,
-																Att1Id = string.Empty,
-																Att2Id = string.Empty,
-																Price = Client.GetValue(product, "price"),
-																SalePrice = string.Empty,
-																Filter = string.Empty,
-																Rating = Client.GetValue(product, "review_average"),
-																StandardCode = Client.GetValue(product, "eproduct_serial"),
-															};
+			//compile the list of fields that need to be extracted for each item in the catalog
+			var fields = new List<string>() 
+										{ "catalogid", 
+											"name", 
+											"price", 
+											"saleprice", 
+											"review_average", 
+											"onsale", 
+											"eproduct_serial", 
+											m_imageField 
+										};
+			if (m_secondAttEnabled) 
+				fields.Add(m_secondAttField);
+			List<string> extraFields = GetRuleFields();
+			if (extraFields.Count > 0)
+				fields = fields.Union(extraFields).Distinct().ToList();
 
-						//create image link
-						string thumb = Client.GetValue(product, m_imageField);
-						if (thumb.Length > 0)
-						{
-							int doublehash = thumb.IndexOf("//");
-							if (doublehash >= 0) //thumb contains full url
-								p.ImageLink = thumb.Substring(doublehash); //drop http protocol if present
-							else //thumb contains asset location
-							{
-								p.ImageLink = "thumbnail.asp?file=";
-								if (!thumb.StartsWith("/")) p.ImageLink += "/";
-								p.ImageLink += thumb;
-							}
-						}
-						else //no thumbnail found so try using product id
-							p.ImageLink = "thumbnail.asp?file=/assets/images/" + p.ProductId + ".jpg";
+			//Loop through catalog grabbing 5000 items at a time from 3dCart
+			string sqlQueryStart = "SELECT TOP 5000 p." + fields.Aggregate((w, j) => string.Format("{0}, p.{1}", w, j)); 
+			sqlQueryStart += " FROM products AS p ";
+            if (lastId.ToString() != "99")
+            {
+                while (true)
+                {
+                    sqlQuery = sqlQueryStart
+                                        + "WHERE p.catalogid > " + lastId.ToString() + " "
+                                        + " ORDER BY p.catalogid";
+                    queryResults = Get3dCartQuery(sqlQuery);
+                    if (queryResults == null)
+                        break; //no more data
 
-						//need to query product_category table for each product to get it's list of categories
-						//Note: these are all retrieved in advance in an XElement so we don't call 3dCart 30K times for this
-						List<string> catList = catResults.Where(x => Client.GetValue(x, "catalogid").Equals(productID)).Select(y => Client.GetValue(y, "categoryid")).ToList();
-						if (catList != null)
-							p.Att1Id += catList.Aggregate((w, j) => string.Format("{0},{1}", w, j));
-						//IEnumerable<XElement> catList =
-						//        from row in catResults
-						//        where Client.GetValue(row, "catalogid").Equals(productID)
-						//        select row;
-						//bool firstItem = true;
-						//foreach (XElement xcat in catList)
-						//{
-						//  string id = Client.GetValue(xcat, "categoryid");
-						//  if (firstItem) firstItem = false;
-						//  else p.Att1Id += ","; //separate multiple categories with commas
-						//  p.Att1Id += id;
-						//}
+                    exportedRows += queryResults.Count();
+                    pdWatch.Lap();
+                    ProgressText = tempDisplay1 + exportedRows.ToString();
+                    tempDisplay2 = ProgressText;
+                    ProgressText += " (" + pdWatch.TotalTime + ")";
+                    string productID = "";
+                    foreach (XElement product in queryResults)
+                    {
+                        categorizedRows++;
+                        productID = Client.GetValue(product, "catalogid");
+                        string name = RemoveIllegalChars(Client.GetValue(product, "name"), illegalChars);
+                        try
+                        {
+                            var p = new ProductRecord
+                                                                {
+                                                                    Name = name,
+                                                                    ProductId = productID,
+                                                                    Link = "product.asp?itemid=" + productID,
+                                                                    ImageLink = string.Empty,
+                                                                    Att1Id = string.Empty,
+                                                                    Att2Id = string.Empty,
+                                                                    Price = Client.GetValue(product, "price"),
+                                                                    SalePrice = string.Empty,
+                                                                    Filter = string.Empty,
+                                                                    Rating = Client.GetValue(product, "review_average"),
+                                                                    StandardCode = Client.GetValue(product, "eproduct_serial"),
+                                                                };
 
-						if (m_secondAttEnabled) 
-							p.Att2Id = Client.GetValue(product, m_secondAttField);
+                            //create image link
+                            string thumb = Client.GetValue(product, m_imageField);
+                            if (thumb.Length > 0)
+                            {
+                                int doublehash = thumb.IndexOf("//");
+                                if (doublehash >= 0) //thumb contains full url
+                                    p.ImageLink = thumb.Substring(doublehash); //drop http protocol if present
+                                else //thumb contains asset location
+                                {
+                                    p.ImageLink = "thumbnail.asp?file=";
+                                    if (!thumb.StartsWith("/")) p.ImageLink += "/";
+                                    p.ImageLink += thumb;
+                                }
+                            }
+                            else //no thumbnail found so try using product id
+                                p.ImageLink = "thumbnail.asp?file=/assets/images/" + p.ProductId + ".jpg";
 
-						bool onsale = Client.GetValue(product, "onsale").Equals("1");
-						if (onsale)
-							p.SalePrice = Client.GetValue(product, "saleprice");
-					
-						//check category conditions, exclusions, and filters
-						ApplyRules(ref p, product);
+                            //need to query product_category table for each product to get it's list of categories
+                            //Note: these are all retrieved in advance in an XElement so we don't call 3dCart 30K times for this
+                            if (catResults != null)
+                            {
+                                List<string> catList = catResults.Where(x => Client.GetValue(x, "catalogid").Equals(productID)).Select(y => Client.GetValue(y, "categoryid")).ToList();
+                                p.Att1Id += catList.Aggregate((w, j) => string.Format("{0},{1}", w, j));
+                            }
 
-						products.Add(p);
-					}
-					catch { errors++; }
-					ProgressText = string.Format("{0} {1} completed, {2} errors ({3})", tempDisplay2, categorizedRows, errors, pdWatch.Lap());
-				}
-				
-				lastId = Convert.ToInt32(productID);
-				hasResults = true;
-				if (categorizedRows == targetRows)
-					break; //read all products
-			}
-			queryResults = null; //no longer needed
+                            if (m_secondAttEnabled)
+                                p.Att2Id = Client.GetValue(product, m_secondAttField);
+
+                            bool onsale = Client.GetValue(product, "onsale").Equals("1");
+                            if (onsale)
+                                p.SalePrice = Client.GetValue(product, "saleprice");
+
+                            //call base class to check category conditions, exclusions, and filters
+                            ApplyRules(ref p, product);
+
+                            products.Add(p);
+                        }
+                        catch { errors++; }
+                        ProgressText = string.Format("{0} {1} completed, {2} errors ({3})", tempDisplay2, categorizedRows, errors, pdWatch.Lap());
+                    }
+
+                    lastId = Convert.ToInt32(productID);
+                    hasResults = true;
+                    if (categorizedRows == targetRows)
+                        break; //read all products
+                }
+            }
 			if (products.Count < 1)
 				return result + "(no data)";
 
@@ -454,11 +436,11 @@ namespace _4_Tell
 			ProgressText += "Exporting...";
 
 			var replacements = new List<ReplacementRecord>();
-			if (m_replacements[0].Type != ReplacementCondition.repType.catalog) //individual item replacement
+			if (m_replacements[0].Type != ReplacementCondition.RepType.Catalog) //individual item replacement
 			{
 				foreach (ReplacementCondition rc in m_replacements)
 				{
-					if (rc.Type != ReplacementCondition.repType.item)
+					if (rc.Type != ReplacementCondition.RepType.Item)
 					{
 						m_log.WriteEntry("Invalid replacement condition: " + rc.ToString(), EventLogEntryType.Warning, m_alias);
 						continue;  //ignore any invalid entries 
@@ -477,13 +459,12 @@ namespace _4_Tell
 				IEnumerable<XElement> queryResults = Get3dCartQuery(sqlQuery);
 				if (queryResults == null)
 					return result + "Error reading products.";
-				else
-					replacements.AddRange(queryResults.Select(p => new ReplacementRecord
-																														{
-																															OldId = Client.GetValue(p, oldfield),
-																															NewId = Client.GetValue(p, newfield)
-																														}));
-				queryResults = null; //no longer needed
+				
+				replacements.AddRange(queryResults.Select(p => new ReplacementRecord
+				                                               	{
+				                                               		OldId = Client.GetValue(p, oldfield),
+				                                               		NewId = Client.GetValue(p, newfield)
+				                                               	}));
 			}
 			if (replacements.Count < 1)
 				return result + "(no data)";
@@ -502,8 +483,8 @@ namespace _4_Tell
 			ProgressText += "Exporting...";
 
 			//Query 3dCart for the data
-			string sqlQuery = "SELECT c.id, c.category_name\n"
-								+ "FROM category AS c";
+			const string sqlQuery = "SELECT c.id, c.category_name\n"
+			                        + "FROM category AS c";
 			IEnumerable<XElement> queryResults = Get3dCartQuery(sqlQuery);
 			if (queryResults == null)
 				return result + "(no data)"; //no data matches rules
@@ -532,8 +513,8 @@ namespace _4_Tell
 			ProgressText += "Exporting...";
 
 			//Query 3dCart for the data
-			string sqlQuery = "SELECT m.id, m.manufacturer\n"
-								+ "FROM manufacturer AS m";
+			const string sqlQuery = "SELECT m.id, m.manufacturer\n"
+			                        + "FROM manufacturer AS m";
 			IEnumerable<XElement> queryResults = Get3dCartQuery(sqlQuery);
 			if (queryResults == null)
 				return result + "(no data)"; //no data matches rules
@@ -553,20 +534,16 @@ namespace _4_Tell
 		public void QueryTest(string query)
 		{
 			string result = "";
-			IEnumerable<XElement> queryResults = null;
 
 			try
 			{
-				queryResults = Get3dCartQuery(query);
+				IEnumerable<XElement> queryResults = Get3dCartQuery(query);
 				if (queryResults == null)
 				{
 					result = "no results";
 					return;
 				}
-				foreach (XElement x in queryResults)
-				{
-					result += x.ToString();
-				}
+				result = queryResults.Aggregate(result, (current, x) => current + x.ToString());
 			}
 			catch (Exception ex)
 			{
@@ -588,8 +565,8 @@ namespace _4_Tell
 			XElement xmlResult;
 			lock (m_3dApiLock) //make sure only one thread at a time is accessing this API 
 			{
-				cartAPIAdvancedSoapClient soapClient = new cartAPIAdvancedSoapClient();
-				xmlResult = soapClient.runQuery(m_storeShortUrl, m_apiKey, query, "");
+				var soapClient = new cartAPIAdvancedSoapClient();
+				xmlResult = soapClient.runQuery(m_apiUrl, m_apiKey, query, "");
 			}
 			if (xmlResult == null)
 				throw new Exception("Error: during 3dCart data query --no response");
@@ -598,25 +575,25 @@ namespace _4_Tell
 			{
 				return null; //no data
 			}
-			else if (xmlResult.Name.LocalName.Equals("Error"))
+
+			var error = xmlResult.Element("Error"); //if (xmlResult.Name.LocalName.Equals("Error"))
+			if (error != null && !error.IsEmpty)
 			{
-				string errMsg = "Error: during 3dCart data query\n";
-				if (xmlResult.Element("Id") != null)
-				{
-					errMsg += "Id = " + xmlResult.Element("Id").Value;
-					if (xmlResult.Element("Description") != null)
-						errMsg += " Description = " + xmlResult.Element("Description").Value;
-				}
-				else if (xmlResult.Value != null)
-					errMsg += xmlResult.Value;
+				string errMsg = "Error during 3dCart data query: ";
+				var id = error.Element("Id");
+				if (id != null)
+					errMsg += "Id = " + id.Value;
+				errMsg += " Description = ";
+				var description = error.Element("Description");
+				if (description != null)
+					errMsg += description.Value;
+				else 
+					errMsg += error.Value;
 				throw new Exception(errMsg);
 			}
 			
-			if (xmlResult.Element("runQueryRecord") == null)
-				return null;  //no data
-
-			IEnumerable<XElement> tempResults = xmlResult.Elements("runQueryRecord");
-			if ((tempResults == null) || (tempResults.Count<XElement>() < 1))
+			var tempResults = xmlResult.Elements("runQueryRecord");
+			if (tempResults == null || !tempResults.Any())
 				return null; //no data
 
 			return tempResults;

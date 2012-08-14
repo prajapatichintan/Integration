@@ -45,47 +45,6 @@ using _4_Tell.IO;
 			{
 			}
 
-			public void ExtractSelectedData(object paramObj)
-			{
-				try
-				{
-					object[] parameters = (object[])paramObj;
-					if (parameters.Length < 3) //not enough parameters
-					{
-						ProgressText = "Error: not enough parameters";
-						WorkerDone = true;
-						return;
-					}
-
-					bool allSales = (bool)parameters[0];
-					bool salesUpdate = (bool)parameters[1];
-					bool catalog = (bool)parameters[2];
-
-					lock (m_workerLock)
-					{
-						if (m_activeClient == null) //nothing to do
-						{
-							ProgressText = "Error: no active client";
-							WorkerDone = true;
-							return;
-						}
-
-						m_activeClient.ExtractData(salesUpdate, allSales, catalog); //always try to include exclusions and replacements with the catalog
-						ProgressText = "Extraction complete for " + m_activeClient.Alias;
-					}
-				}
-				catch (Exception ex)
-				{
-					ProgressText = "Error: " + ex.Message;
-					if (ex.InnerException != null)
-						ProgressText += "\n" + ex.InnerException.Message;
-				}
-				finally
-				{
-					WorkerDone = true;
-				}
-			}
-
 			public void ExtractAllData()
 			{
 				try
@@ -114,7 +73,7 @@ using _4_Tell.IO;
 				}
 			}
 
-			public void ExtractSalesUpdate()
+			public void ExtractUpdate()
 			{
 				try
 				{
@@ -126,7 +85,7 @@ using _4_Tell.IO;
 							WorkerDone = true;
 							return;
 						}
-						m_activeClient.ExtractSalesUpdate();
+						m_activeClient.ExtractUpdate();
 						ProgressText = "Sales update extracted for " + m_activeClient.Alias;
 					}
 				}
@@ -142,33 +101,6 @@ using _4_Tell.IO;
 				}
 			}
 
-			public void ExtractCatalog()
-			{
-				try
-				{
-					lock (m_workerLock)
-					{
-						if (m_activeClient == null) //nothing to do
-						{
-							ProgressText = "Error: no active client";
-							WorkerDone = true;
-							return;
-						}
-						m_activeClient.ExtractCatalog();
-						ProgressText = "Catalog extracted for " + m_activeClient.Alias;
-					}
-				}
-				catch (Exception ex)
-				{
-					ProgressText = "Error: " + ex.Message;
-					if (ex.InnerException != null)
-						ProgressText += "\n" + ex.InnerException.Message;
-				}
-				finally
-				{
-					WorkerDone = true;
-				}
-			}
 		}
 
 		#endregion
@@ -178,11 +110,8 @@ using _4_Tell.IO;
 		{
 			if (!IsPostBack)
 			{
-				if (!m_init || (m_clients == null)) 
-                    Initialize();
-
-				if (DropDownListClientAlias.SelectedItem == null) 
-                    LoadClientList();
+				if (!m_init || (m_clients == null)) Initialize();
+				if (DropDownListClientAlias.SelectedItem == null) LoadClientList();
 			}
 		}
 
@@ -194,7 +123,6 @@ using _4_Tell.IO;
 			m_clients = ClientList.Instance; 
 
 			AbortWorker();
-
 			LoadClientList();
 
 			ProgressTimer.Interval = 500;
@@ -204,11 +132,7 @@ using _4_Tell.IO;
 
 		private void LoadClientList()
 		{
-
 			m_aliasList = m_clients.GetAliasList();
-
-            if (m_aliasList.Count == 0) { m_clients.LoadClients(); }
-
 			m_aliasList.Sort();
 			DropDownListClientAlias.DataSource = m_aliasList;
 			DropDownListClientAlias.DataBind();
@@ -299,7 +223,7 @@ using _4_Tell.IO;
 
 				//launch the thread to export and upload data files
 				ExportWorker oWorker = new ExportWorker();
-				WorkerThread = new Thread(new ThreadStart(oWorker.ExtractSalesUpdate));
+				WorkerThread = new Thread(new ThreadStart(oWorker.ExtractUpdate));
 				WorkerThread.Start();
 				ProgressTimer.Enabled = true;
 			}
@@ -316,54 +240,10 @@ using _4_Tell.IO;
 			}
 		}
 
-		protected void Button_selections_Click(object sender, EventArgs e)
-		{
-			if (!WorkerDone) return; //only one task at a time
-            // run the selection
-			WorkerDone = false;
-			string alias = TextBox_clientAlias.Text;
-			string result = "Extracting data for " + alias + "\n";
-			TextBox_result.Text = result;
-			UpdatePanel_Results.Update();
-
-			object[] parameters = new object[3];
-			parameters[0] = Checkbox_AllSales.Checked;
-			parameters[1] = Checkbox_SalesUpdate.Checked;
-			parameters[2] = Checkbox_Catalog.Checked;
-
-			try
-			{
-				m_activeClient = m_clients.Get(alias);
-				if (m_activeClient == null)
-					throw new Exception("Could not find the client: " + alias);
-
-				//launch the thread to export and upload data files
-				ExportWorker oWorker = new ExportWorker();
-				WorkerThread = new Thread(new ParameterizedThreadStart(oWorker.ExtractSelectedData));
-				WorkerThread.Start(parameters);
-				ProgressTimer.Enabled = true;
-			}
-			catch (Exception ex)
-			{
-				result += ex.Message;
-				if (ex.InnerException != null)
-					result += ex.InnerException.Message;
-				ProgressTimer.Enabled = false;
-				m_activeClient = null;
-				TextBox_result.Text += result;
-				UpdatePanel_Results.Update();
-				WorkerDone = true;
-			}
-		}
 
 		protected void Button_UpdateAllClients_Click(object sender, EventArgs e)
 		{
 			if (!WorkerDone) return; //only one task at a time
-
-			object[] parameters = new object[3];
-			parameters[0] = Checkbox_AllSales.Checked;
-			parameters[1] = Checkbox_SalesUpdate.Checked;
-			parameters[2] = Checkbox_Catalog.Checked;
 
 			string result = "Updating all Clients\n";
 			foreach (string alias in m_aliasList)
@@ -382,8 +262,8 @@ using _4_Tell.IO;
 
 					//launch the thread to export and upload data files
 					ExportWorker oWorker = new ExportWorker();
-					WorkerThread = new Thread(new ParameterizedThreadStart(oWorker.ExtractSelectedData));
-					WorkerThread.Start(parameters);
+					WorkerThread = new Thread(new ThreadStart(oWorker.ExtractUpdate));
+					WorkerThread.Start();
 					ProgressTimer.Enabled = true;
 
 					while (!WorkerDone) Thread.Sleep(1500);
@@ -404,18 +284,6 @@ using _4_Tell.IO;
 					WorkerDone = true;
 				}
 			}
-		}
-
-		protected void Checkbox_AllSales_CheckedChanged(object sender, EventArgs e)
-		{
-			if (Checkbox_AllSales.Checked && Checkbox_SalesUpdate.Checked)
-				Checkbox_SalesUpdate.Checked = false;
-		}
-
-		protected void Checkbox_SalesUpdate_CheckedChanged(object sender, EventArgs e)
-		{
-			if (Checkbox_AllSales.Checked && Checkbox_SalesUpdate.Checked)
-				Checkbox_AllSales.Checked = false;
 		}
 
 		protected void DropDownListClientAlias_SelectedIndexChanged(object sender, EventArgs e)

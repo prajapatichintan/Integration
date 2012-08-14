@@ -12,16 +12,16 @@ using System.Collections;
 //using System.Web.UI.WebControls;
 using System.Runtime.Serialization.Json;
 
+
 namespace _4_Tell
 {
 	using Utilities;
 	using IO;
     using System.Net;
     using System.Xml;
-    using _4_Tell.MivaMerchant;
-    using Newtonsoft.Json.Linq;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
+    
+    using System.Web.Script.Serialization;
+    using System.Runtime.Serialization;
 
     public class MivaMerchantExtractor : CartExtractor
     {
@@ -30,11 +30,15 @@ namespace _4_Tell
         private const string m_categoriesFileName = "Categories.csv";
         private readonly string m_dataPath = string.Empty;
 
+        private readonly string m_storeLongUrl = string.Empty;
         private readonly string m_catalogFilePath = string.Empty;
         private readonly string m_photoBaseUrl = string.Empty;
         private readonly string m_categoriesFilePath = string.Empty;
         private readonly string m_ordersFilePath = string.Empty;
 
+        internal ProductRecord CatalogItem = null;
+        internal List<ProductRecord> products = new List<ProductRecord>();
+ 
         private IEnumerable<SalesRecord> m_orderHistory = null;
         private IEnumerable<SalesRecord> OrderHistory
         {
@@ -82,7 +86,7 @@ namespace _4_Tell
             get
             {
                 //TODO: get live catalog from site
-                MivaMerchantJsonBridge json = new MivaMerchantJsonBridge();
+                var json = new MivaMerchantJsonBridge();
 
                 json.RequestFromService(MivaMerchantJsonBridge.DataGroup.Catalog);
 
@@ -362,43 +366,28 @@ namespace _4_Tell
             string tempDisplay = ProgressText;
             ProgressText += "Exporting...";
 
-            var replacements = new List<ReplacementRecord>();
-            if (!m_replacements[0].Type.Equals(ReplacementCondition.repType.catalog))
+            if (!m_replacements[0].Type.Equals(ReplacementCondition.RepType.Catalog))
             {
                 foreach (var rc in m_replacements)
                 {
-                    if (!rc.Type.Equals(ReplacementCondition.repType.item))
+                    if (!rc.Type.Equals(ReplacementCondition.RepType.Item))
                     {
                         m_log.WriteEntry(string.Format("Invalid replacement condition: {0}", rc), EventLogEntryType.Warning, m_alias);
                         continue;
                     }
 
-                    replacements.Add(new ReplacementRecord { OldId = rc.OldName, NewId = rc.NewName });
+                    m_repReplacements.Add(new ReplacementRecord { OldId = rc.OldName, NewId = rc.NewName });
                 }
             }
-            else
-            {
-                var products = LoadTabDelimitedFile(m_catalogFilePath).Select(x => new ProductRecord { ProductId = x["PRODUCT_CODE"], Name = x["PRODUCT_NAME"] });
-                if (products.Count() == 0)
-                    return result + " ( no data)";
+// MOVED else TO APPLY RULES FUNCTION 
 
-                foreach (var p in products)
-                {
-                    var rr = new ReplacementRecord
-                        {
-                            OldId = products.Where(x => x.Name.Equals(m_replacements[0].OldName)).Select(y => y.ProductId).DefaultIfEmpty("").Single(),
-                            NewId = products.Where(x => x.Name.Equals(m_replacements[0].NewName)).Select(y => y.ProductId).DefaultIfEmpty("").Single()
-                        };
-                    replacements.Add(rr);
-                }
-            }
-            if (replacements.Count < 1)
+            if (m_repReplacements.Count < 1)
                 return result + "(no data)";
 
             m_replacementsEnabled = true;
-            var countDisplay = string.Format("({0} items) ", replacements.Count);
+            var countDisplay = string.Format("({0} items) ", m_repReplacements.Count);
             ProgressText = tempDisplay + countDisplay + "Uploading...";
-            result += countDisplay + m_boostService.WriteTable(m_alias, ReplacementFilename, replacements);
+            result += countDisplay + m_boostService.WriteTable(m_alias, ReplacementFilename, m_repReplacements);
             return result;
         }
 
@@ -429,23 +418,63 @@ namespace _4_Tell
         protected override string GetAtt2Names()
         {
             return Environment.NewLine + "No Manufacturer names exported (names match ids in Miva)";
+            // Manufacturer: (Brands) Check to see which one they used
+            // Just get the list!!
         }
 
 
         protected override string GetCatalog()
         {
             string result = "\n" + CatalogFilename + ": ";
-            ProgressText += result + "Extracting...";
+            string ProgressText = result + "Extracting...";
+
             var stopWatch = new StopWatch(true);
-            var products = new List<ProductRecord>();
+            var products = new List<_4_Tell.ProductRecord>();
+            string tempDisplay = ProgressText;
 
             MivaMerchantJsonBridge json = new MivaMerchantJsonBridge();
 
-            json.RequestFromService(MivaMerchantJsonBridge.DataGroup.Catalog);
+            products = (List<ProductRecord>)json.RequestFromService(MivaMerchantJsonBridge.DataGroup.Catalog);
 
-            return "Retreiving from service...";
+            ProgressText = string.Format("{0}{1} rows completed ({2})", tempDisplay, products.Count, stopWatch.Lap());
+			
+			ProgressText = string.Format("{0}Completed ({1}){2}Uploading to server...",
+																		tempDisplay, stopWatch.Lap(), Environment.NewLine);
+
+			result += m_boostService.WriteTable( m_alias,  CatalogFilename, products, false);
+
+			ProgressText = string.Format("{0}({1})", result, stopWatch.Stop());
+			return result; 
         }
 
+        protected string GetCategory()
+        {
+            string result = "\n" + m_categoriesFileName + ": ";
+            ProgressText += result + "Extracting...";
+            var stopWatch = new StopWatch(true);
+
+            string tempDisplay = ProgressText;
+
+            MivaMerchantJsonBridge json = new MivaMerchantJsonBridge();
+
+            List<CategoryRecord> items = (List<CategoryRecord>)json.RequestFromService(MivaMerchantJsonBridge.DataGroup.CategoryNames);
+
+            ProgressText = string.Format("{0}{1} rows completed ({2})", tempDisplay, items.Count, stopWatch.Lap());
+
+            ProgressText = string.Format("{0}Completed ({1}){2}Uploading to server...",
+                                                                        tempDisplay, stopWatch.Lap(), Environment.NewLine);
+
+            if(items != null & items.Count > 0)
+            {
+                //populate  m_categoryDictionary ??
+
+            }
+            // result += m_boostService.WriteTable(m_alias, m_categoriesFileName, cats, false);
+
+            ProgressText = string.Format("{0}({1})", result, stopWatch.Stop());
+
+            return result;
+        }
     }//END class MivaMerhcatExtractor
 
 
@@ -466,31 +495,116 @@ namespace _4_Tell
     /// </summary>
     internal class MivaMerchantJsonBridge
     {
-        string storeUrl = @"https://4-tell.coolcommerce.net/mm5/merchant.mvc?Screen=4Tell&ClientAlias=MivaMerc&ServiceKey=W0C4CDD14A!7DAKEaEc561J7&DataGroup=?";
+        private List<_4_Tell.ProductRecord> m_catalog = null;
 
-        internal enum DataGroup { Categories, Catalog , Sales };
+        string storeUrl = @"https://4-tell.coolcommerce.net/mm5/merchant.mvc?Screen=4Tell&ClientAlias=MivaMerc&ServiceKey=W0C4CDD14A!7DAKEaEc561J7&DataGroup=";
+
+        // https://4-tell.coolcommerce.net/mm5/merchant.mvc?Screen=4Tell&ClientAlias=MivaMerc&ServiceKey=W0C4CDD14A!7DAKEaEc561J7&DataGroup=CategoryNames
+
+        internal enum DataGroup {  Sales, Catalog, CategoryNames, ManufacturerNames };
 
         /// <summary>
         /// Request handler
         /// </summary>
         /// <param name="group"></param>
-        internal void RequestFromService(DataGroup group)
+        internal object RequestFromService(DataGroup group)
         {
+            object retVal = null;
+
             Uri serviceUri = new Uri(storeUrl + group);
             WebClient downloader = new WebClient();
             System.Net.ServicePointManager.ServerCertificateValidationCallback = ((sender, certificate, chain, sslPolicyErrors) => true);
             Stream responseStream = downloader.OpenRead(serviceUri);
-            SetCatalogData(responseStream);
+            
 
-            //if(group == DataGroup.Catalog)
-            //        downloader.OpenReadCompleted += new OpenReadCompletedEventHandler(downloader_OpenCatalogReadCompleted);
-            //else if (group == DataGroup.Categories)
-            //    downloader.OpenReadCompleted += new OpenReadCompletedEventHandler(downloader_OpenCatalogReadCompleted);
-            //else if (group == DataGroup.Sales)
-            //    downloader.OpenReadCompleted += new OpenReadCompletedEventHandler(downloader_OpenCatalogReadCompleted);
+            if(group == DataGroup.Catalog)
+                retVal = SetCatalogData(responseStream); //downloader.OpenReadCompleted += new OpenReadCompletedEventHandler(downloader_OpenCatalogReadCompleted);
+            else if (group == DataGroup.CategoryNames)
+                retVal = SetCategoryData(responseStream);  // downloader.OpenReadCompleted += new OpenReadCompletedEventHandler(downloader_OpenCatalogReadCompleted);
+            else if (group == DataGroup.Sales)
+                retVal = SetSalesData(responseStream); //downloader.OpenReadCompleted += new OpenReadCompletedEventHandler(downloader_OpenCatalogReadCompleted);
 
-
+            return retVal;
             //downloader.OpenReadAsync(serviceUri);
+        }
+
+        private List<_4_Tell.SalesRecord> SetSalesData(Stream Content)
+        {
+            List<SalesRecord> sales = null;
+            try
+            {
+                StreamReader rdr = new StreamReader(Content);
+                string sContent = rdr.ReadToEnd();
+                // 
+                string[] rows = sContent.Trim().Split(']');
+                string thisRow = String.Empty;
+
+                foreach (string row in rows)
+                {
+                    if (row.Length > 0)
+                    {
+                        thisRow = row;
+                        thisRow = thisRow.Replace("[", String.Empty);
+                        thisRow = thisRow.Replace("]", String.Empty);
+                        SalesRecord pr = new SalesRecord();
+                        if (!row.StartsWith("[[") == true && !row.EndsWith("]]") == true)
+                        {
+                            // normal row
+                            string[] cols = thisRow.Split(',');
+                            pr.CustomerId = cols[0].Replace("\\", String.Empty).Replace("/", String.Empty).Replace('"', ' ').Trim();
+                            pr.Date= cols[1].Replace("\\", String.Empty).Replace("/", String.Empty).Replace('"', ' ').Trim();
+                            pr.ProductId= cols[2].Replace("\\", String.Empty).Replace("/", String.Empty).Replace('"', ' ').Trim();
+                            pr.Quantity= cols[3].Replace("\\", String.Empty).Replace("/", String.Empty).Replace('"', ' ').Trim();
+                            sales.Add(pr);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                Console.Read();
+            }
+            return sales;
+        }
+
+        private List<_4_Tell.CartExtractor.CategoryRecord> SetCategoryData(Stream Content)
+        {
+            List<_4_Tell.CartExtractor.CategoryRecord> cat = new List<_4_Tell.CartExtractor.CategoryRecord>();
+
+            try
+            {
+                StreamReader rdr = new StreamReader(Content);
+                string sContent = rdr.ReadToEnd();
+                // "[[\"ID\", \"Name\"], [\"test1\", \"cat1\"], [\"test2\", \"cat2\"], [\"test3\", \"cat3\"], [\"test4\", \"cat4\"], [\"test5\", \"cat5\"]]"
+                string[] rows = sContent.Trim().Split(']');
+                string thisRow = String.Empty;
+
+                foreach (string row in rows)
+                {
+                    if (row.Length > 0)
+                    {
+                        thisRow = row;
+                        thisRow = thisRow.Replace("[", String.Empty);
+                        thisRow = thisRow.Replace("]", String.Empty);
+                        _4_Tell.CartExtractor.CategoryRecord pr = new _4_Tell.CartExtractor.CategoryRecord();
+                        if (!row.StartsWith("[[") == true && !row.EndsWith("]]") == true)
+                        {
+                            // normal row
+                            string[] cols = thisRow.Split(',');
+                            pr.Id = cols[1].Replace("\\", String.Empty).Replace("/", String.Empty).Replace('"', ' ').Trim();
+                            pr.Name = cols[2].Replace("\\", String.Empty).Replace("/", String.Empty).Replace('"', ' ').Trim();
+                            cat.Add(pr);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                Console.Read();
+            }
+            return cat;
         }
 
         /// <summary>
@@ -512,38 +626,76 @@ namespace _4_Tell
         /// Bind catalog data to CatalogItem(s)
         /// </summary>
         /// <param name="Content"></param>
-        internal void SetCatalogData(Stream Content)
+        internal List<ProductRecord> SetCatalogData(Stream Content)
         {
-            try
+            List<ProductRecord> products = new List<ProductRecord>();
+            StreamReader rdr = new StreamReader(Content);
+            string sContent = rdr.ReadToEnd();
+            /*
+             * 
+             * ? sContent
+"[[\"ProductID (Yes) \", \"Name (Yes) \", \"CategoryIDs (Yes) \", \"BrandID (No) \", \"Price (Yes) \", \"SalePrice (No) \", \"Link (Yes) \", \"ImageLink (Yes) \", \"StandardCode (No)\", \"ActiveFlag (Yes)\", \"StockLevel (No)\"], 
+             * [\"product1\", \"product1\", \"\", \"\", \"5.00\", \"\", \"http:\\/\\/4-tell.coolcommerce.net\\/mm5\\/merchant.mvc\\u003fStore_code\\u003d4tell\\u0026amp\\u003bScreen\\u003dPROD\\u0026amp\\u003bProduct_Code\\u003dproduct1\", \"\", \"product1\", \"0\", \"\"], [\"product2\", \"product2\", \"test4,test5\", \"\", \"110.00\", \"\", \"http:\\/\\/4-tell.coolcommerce.net\\/mm5\\/merchant.mvc\\u003fStore_code\\u003d4tell\\u0026amp\\u003bScreen\\u003dPROD\\u0026amp\\u003bProduct_Code\\u003dproduct2\", \"\", \"product2\", \"1\", \"\"], [\"product3\", \"product3\", \"\", \"\", \"1.22\", \"\", \"http:\\/\\/4-tell.coolcommerce.net\\/mm5\\/merchant.mvc\\u003fStore_code\\u003d4tell\\u0026amp\\u003bScreen\\u003dPROD\\u0026amp\\u003bProduct_Code\\u003dproduct3\", \"\", \"product3\", \"1\", \"\"], [\"product4\", \"product4\", \"test1\", \"\", \"55.19\", \"\", \"http:\\/\
+\/4-tell.coolcommerce.net\\/mm5\\/merchant.mvc\\u003fStore_code\\u003d4tell\\u0026amp\\u003bScreen\\u003dPROD\\u0026amp\\u003bProduct_Code\\u003dproduct4\", \"\", \"product4\", \"1\", \"\"]]
+             * 
+             */
+            string[] rows = sContent.Trim().Split(']');
+            string thisRow = String.Empty;
+
+            foreach (string row in rows)
             {
-
-                DataContractJsonSerializer ser = new DataContractJsonSerializer(typeof(CatalogItem));
-                CatalogItem catatlogItem = ser.ReadObject(Content) as CatalogItem;
-
-                CatalogItem ci = new CatalogItem();
-                
-                JsonSerializer serializer = new JsonSerializer();
-                serializer.Converters.Add(new JavaScriptDateTimeConverter());
-                serializer.NullValueHandling = NullValueHandling.Ignore;
-
-                using (StreamWriter sw = new StreamWriter(Content))
-                using (JsonWriter writer = new JsonTextWriter(sw))
+                if (row.Length > 0)
                 {
-                    serializer.Serialize(writer, ci);
-                    // {"Expiry":new Date(1230375600000),"Price":0}
+                    thisRow = row;
+                    thisRow = thisRow.Replace("[", String.Empty);
+                    thisRow = thisRow.Replace("]", String.Empty);
+                    ProductRecord pr = new ProductRecord();
+                    if (! row.StartsWith("[[") == true && ! row.EndsWith("]]") == true)
+                    {
+                        // normal row
+                        string[] cols = thisRow.Split(',');
+
+                        // \"ProductID\", 
+                        pr.ProductId = cols[1].Replace("\\", String.Empty).Replace("/", String.Empty).Replace('"', ' ').Trim();
+                        // \"Name\", 
+                        pr.Name = cols[2].Replace("\\", String.Empty).Replace("/", String.Empty).Replace('"', ' ').Trim();
+                        // \"CategoryIDs\", 
+                        pr.CategoryIDs = cols[3].Replace("\\", String.Empty).Replace("/", String.Empty).Replace('"', ' ').Trim();
+                        // \"BrandID\", 
+                        pr.BrandID = cols[4].Replace("\\", String.Empty).Replace("/", String.Empty).Replace('"', ' ').Trim();
+                        // \"Price\", 
+                        pr.Price = cols[5].Replace("\\", String.Empty).Replace("/", String.Empty).Replace('"', ' ').Trim();
+                        // \"SalePrice\", 
+                        pr.SalePrice = cols[6].Replace("\\", String.Empty).Replace("/", String.Empty).Replace('"', ' ').Trim();
+                        // \"Link\", 
+                        pr.Link = cols[7].Replace("\\", String.Empty).Replace("/", String.Empty).Replace('"', ' ').Trim();
+                        // \"ImageLink\", 
+                        pr.ImageLink = cols[8].Replace("\\", String.Empty).Replace("/", String.Empty).Replace('"', ' ').Trim();
+                        // \"StandardCode \", 
+                        pr.StandardCode = cols[9].Replace("\\", String.Empty).Replace("/", String.Empty).Replace('"', ' ').Trim();
+                        // \"ActiveFlag\", 
+                        pr.ActiveFlag = cols[10].Replace("\\", String.Empty).Replace("/", String.Empty).Replace('"', ' ').Trim();
+                        // \"StockLevel\"],
+                        pr.StockLevel = cols[11].Replace("\\", String.Empty).Replace("/", String.Empty).Replace('"', ' ').Trim();
+
+                        products.Add(pr);
+                    }
+
                 }
-                
             }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                Console.Read();
-            }
+
+            return products;
 
         }
 
     }//END class MivaMerchantJsonBridge
 
-   
+    
+    
+    public class ProducListtWrapper
+    {
+    
+        private List<ProductRecord> Project { get; set; }
+    } 
 
-}
+}//END namespace

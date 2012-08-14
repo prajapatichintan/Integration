@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net;
-using System.Text;
-using System.Web;
 using System.Xml;
 using System.Xml.Linq;
 using System.Diagnostics; //EventlogEntryType
@@ -28,21 +24,26 @@ namespace _4_Tell
 		private IEnumerable<XElement> m_catalogXml = null;
 		private IEnumerable<XElement> m_categoryXml = null;
 
-		public XmlDocument GetXMLFromURL(string APIURL)
+		//making exclusions and replacements global so they can be filled while getting the catalog
+		private List<ExclusionRecord> m_exclusionList = null;
+		private List<ReplacementRecord> m_replacementList = null;
+
+
+		public XmlDocument GetXmlFromUrl(string apiUrl)
 		{
-			XmlDocument APIDoc = null;
+			XmlDocument apiDoc = null;
 			try
 			{
-				XmlTextReader reader = new XmlTextReader(APIURL);
-				APIDoc = new XmlDocument();
-				APIDoc.Load(reader);
+				var reader = new XmlTextReader(apiUrl);
+				apiDoc = new XmlDocument();
+				apiDoc.Load(reader);
 				reader.Close();
 			}
 			catch (Exception e)
 			{
 				throw new Exception("Error reading API URL", e);
 			}
-			return APIDoc;
+			return apiDoc;
 		}
 
 		//Volusion Catalog Notes:
@@ -53,7 +54,7 @@ namespace _4_Tell
 		//  This file is placed in the client upload folder on our server.
 		private void GetCatalogXml(String query = null)
     {
-			if ((query == null) || (query.Length < 1))
+			if (string.IsNullOrEmpty(query))
 				query = "EDI_Name=Generic\\all_products"; //generic catalog query
 
 			if ((m_catalogXml != null) && (query == m_lastCatalogQuery))
@@ -79,7 +80,6 @@ namespace _4_Tell
 			}
 			if (m_catalogXml == null)
 				throw new Exception("Unable to retrieve catalog");    
-			return;
     }
 
 		private XDocument QueryVolusionApi(string query)
@@ -91,11 +91,18 @@ namespace _4_Tell
 				&& (m_apiUserName.Length > 0)
 				&& (m_apiKey.Length > 0))
 			{
-				string serviceURI = string.Format("{0}?Login={1}&EncryptedPassword={2}&{3}",
+				string serviceUri = string.Format("{0}?Login={1}&EncryptedPassword={2}&{3}",
 																					m_webServicesBaseUrl, m_apiUserName, m_apiKey, query);
-				using (var xtr = new XmlTextReader(serviceURI))
+				try
 				{
-					result = XDocument.Load(xtr);
+					using (var xtr = new XmlTextReader(serviceUri))
+					{
+						result = XDocument.Load(xtr);
+					}
+				}
+				catch
+				{
+					return null;
 				}
 			}
 			return result;
@@ -131,7 +138,7 @@ namespace _4_Tell
 		  base.ParseSettings(settings);
 
 			m_dataPath = DataPath.Instance.ClientDataPath(ref m_alias) + "upload\\";
-			m_webServicesBaseUrl = m_storeLongUrl + "/net/WebService.aspx"; //Client.GetValue(settings, "webServicesBaseUrl");
+			m_webServicesBaseUrl = "http://" + m_storeShortUrl + "/net/WebService.aspx"; //Client.GetValue(settings, "webServicesBaseUrl");
 
 			//in case of a CDN, client settings will hold the CDN base path 
 			m_photoBaseUrl = Client.GetValue(settings, "photoBaseUrl");
@@ -158,7 +165,7 @@ namespace _4_Tell
 
 			//Note: the following attempts at getting custom results did not return category ids
 			//			only the generic request was able to get the ids
-			//			downside is that the generic request does not get all fields, so we may need to make a second request per item to get missing fields
+			//			downside is that the generic request does not get all fields, so we have to make a second request per item to get missing fields
 			//string query = "EDI_Name=Generic\\Products&SELECT_Columns=p.HideProduct,p.IsChildOfProductCode,p.ProductCode,p.ProductID,p.ProductName,p.ProductPopularity,p.StockStatus,p.ProductUrl,p.PhotoUrl,pe.Hide_When_OutOfStock,pe.ProductCategory,pe.ProductManufacturer,pe.PhotoURL_Small,pe.ProductPrice,pe.SalePrice,pe.UPC_code,pe.Google_Gender";
 			//string query = "EDI_Name=Generic\\Products&SELECT_Columns=*";
 			string query = null; 
@@ -185,7 +192,7 @@ namespace _4_Tell
 			string tempDisplay = ProgressText;
 
 			//any extra fields not in the standard export will need to be requested from the API for each product
-			string extraFields = "p.Photos_Cloned_From";  //special case needed to find images for some products
+			string extraFields = "p.Photos_Cloned_From,p.IsChildOfProductCode";  //special cases needed to find images and remove children
 			List<string> extraFieldList = GetRuleFields();
 			if (extraFieldList.Count > 0)
 			{
@@ -193,11 +200,15 @@ namespace _4_Tell
 				extraFieldList = extraFieldList.Where(x => (m_catalogXml.First().Descendants().Where(
 														y => y.Name.LocalName.Equals(x, StringComparison.CurrentCultureIgnoreCase)
 														).DefaultIfEmpty(null).Single() == null)).ToList<string>();
-				extraFields += ",pe." + extraFieldList.Aggregate((w, j) => string.Format("{0},pe.{1}", w, j));
+				if (extraFieldList.Count > 0)
+					extraFields += ",pe." + extraFieldList.Aggregate((w, j) => string.Format("{0},pe.{1}", w, j));
 				//Note:	Currently assuming that all fields are in pe table --true so far
-				//A more robust solution would be to compile local lists of fields in each Volusion table and check against the lists
+				//An option would be to compile local lists of fields in each Volusion table and check against the lists
+				//but then we may have to adjust for different version of Volusion
 			}
 
+			//create new replacement list in case child items are found
+			m_replacementList = new List<ReplacementRecord>();
 			int rows = 0;
 			foreach (var product in m_catalogXml)
       {
@@ -210,10 +221,15 @@ namespace _4_Tell
 										SalePrice =  Client.GetValue(product, "SalePrice"),
 										Filter = string.Empty
                 };
-
+#if DEBUG
+				string[] testProducts = { "calerachard10-w", "varnerfoxglovechard10-w", "mountedenchardwolff08-w", "viticciobere2008-w" };
+				bool testFlag = false;
+				if (testProducts.Contains(p.ProductId))
+					testFlag = true;
+#endif
 				if (m_secondAttEnabled)
 					p.Att2Id = Client.GetValue(product, "ProductManufacturer");
-        p.Link = string.Format("{0}/ProductDetails.asp?ProductCode={1}", m_storeLongUrl, p.ProductId);
+				p.Link = string.Format("{0}/ProductDetails.asp?ProductCode={1}", "http://" + m_storeShortUrl, p.ProductId); //pdp link is never https
 				p.Rating =  Client.GetValue(product, "ProductPopularity");
 				p.StandardCode = Client.GetValue(product, "UPC_code");
 				if (p.StandardCode.Length < 1)
@@ -244,6 +260,12 @@ namespace _4_Tell
 					catch
 					{ }
 				}
+
+				//check to make sure this isn't a child
+				string parentID = Client.GetValue(product, "IsChildOfProductCode");
+				if ((parentID.Length > 0) && !parentID.Equals(p.ProductId)) //child so add to replacements
+					m_replacementList.Add(new ReplacementRecord { OldId = p.ProductId, NewId = parentID });
+
 				//get the image link
 				p.ImageLink = string.Empty;
 				string imageID = Client.GetValue(product,"Photos_Cloned_From");
@@ -323,8 +345,7 @@ namespace _4_Tell
 
     protected override string GetExclusions()
     {
-			//NOTE: GetCatalog shoudld be called before GetExclusions in case there are any categories excluded
-
+			//NOTE: GetCatalog must be called before GetExclusions in case there are any categories excluded
 			if (!m_exclusionsEnabled)
 				return "Exclusions disabled"; //nothing to do
 			m_exclusionsEnabled = false;
@@ -341,11 +362,13 @@ namespace _4_Tell
 				catExclusions = m_catConditions.GetExcludedItems();
 
 			//compile exclusion list
-			var exclusions = new List<ExclusionRecord>();
+			if (m_exclusionList == null)
+				m_exclusionList = new List<ExclusionRecord>();
+
 			if ((catExclusions != null) && (catExclusions.Count > 0))
 			{
 				foreach (string id in catExclusions.Distinct()) //distinct to avoid duplicates
-					exclusions.Add(new ExclusionRecord { Id = id });
+					m_exclusionList.Add(new ExclusionRecord { Id = id });
 				m_exclusionsEnabled = true;
 			}
 
@@ -354,7 +377,7 @@ namespace _4_Tell
 
 			//upload to 4-Tell
 			ProgressText = tempDisplay + result + "Uploading...";
-			result += m_boostService.WriteTable(m_alias, ExclusionFilename, exclusions);
+			result += m_boostService.WriteTable(m_alias, ExclusionFilename, m_exclusionList);
 
 			ProgressText = tempDisplay + result;
 			return result;
@@ -367,48 +390,17 @@ namespace _4_Tell
 			string tempDisplay = ProgressText;
 			ProgressText += "Exporting...";
 
-			var replacements = new List<ReplacementRecord>(); 
+			if (m_replacementList == null)
+				m_replacementList = new List<ReplacementRecord>(); 
 
-			//first check for any child products in the catalog
-			var childItems = m_catalogXml.Where(x => Client.GetValue(x, "IsChildOfProductCode").Length > 0).Select(x =>
-				new ReplacementRecord
-				{
-					OldId = Client.GetValue(x, "ProductCode"),
-					NewId = Client.GetValue(x, "IsChildOfProductCode")
-				}).ToList();
-
-			if ((childItems != null) && (childItems.Count() > 0))
-				replacements = replacements.Union(childItems).ToList(); //union to avoid duplicates in final list
-			//else
-			//{	
-			//  //Assumption was that all child products have a product code that is in the form of {parentCode}-{childCode}
-			//	//Would be nice but it looks like this is not always true
-			//  var childCodes = Catalog.Where(x => Client.GetValue(x, "ProductCode").Contains('-')).Select(x =>
-			//    Client.GetValue(x, "ProductCode"));
-			//  foreach (string code in childCodes)
-			//  //foreach (var item in Catalog)
-			//  {
-			//    //string code = Client.GetValue(item, "ProductCode");
-			//    int index = code.IndexOf('-');
-			//    //if (index < 0) continue; //not a child
-
-			//    string parent = code.Substring(0, index);
-			//    replacements.Add(new replacementRecord
-			//                  {
-			//                    OldId = code,
-			//                    NewId = parent
-			//                  });
-			//  }
-			//}
-
-			//now check for any replacement rules
+			// check for any replacement rules
 			if (m_replacements != null)
 			{
-				if (m_replacements[0].Type != ReplacementCondition.repType.catalog) //individual item replacement
+				if (m_replacements[0].Type != ReplacementCondition.RepType.Catalog) //individual item replacement
 				{
 					foreach (ReplacementCondition rc in m_replacements)
 					{
-						if (rc.Type != ReplacementCondition.repType.item)
+						if (rc.Type != ReplacementCondition.RepType.Item)
 						{
 							m_log.WriteEntry("Invalid replacement condition: " + rc.ToString(), EventLogEntryType.Warning, m_alias);
 							continue;  //ignore any invalid entries 
@@ -416,10 +408,10 @@ namespace _4_Tell
 						var r = new ReplacementRecord();
 						r.OldId = rc.OldName;
 						r.NewId = rc.NewName;
-						replacements.Add(r);
+						m_replacementList.Add(r);
 					}
 				}
-				else //full catalog replacement -- need to retrieve from 3dCart
+				else //full catalog replacement 
 				{
 					//Query the catalog for the data
 					string oldfield = m_replacements[0].OldName;
@@ -432,12 +424,12 @@ namespace _4_Tell
 							var r = new ReplacementRecord();
 							r.OldId = Client.GetValue(item, oldfield);
 							r.NewId = Client.GetValue(item, newfield);
-							replacements.Add(r);
+							m_replacementList.Add(r);
 						}
 					}
 				}
 			}
-			if (replacements.Count < 1)
+			if (m_replacementList.Count < 1)
 			{
 				m_replacementsEnabled = false;
 				return result + "(no data)"; //no data matches rules
@@ -446,7 +438,7 @@ namespace _4_Tell
 
 			//upload to 4-Tell
 			ProgressText = tempDisplay + result + "Uploading...";
-			result += m_boostService.WriteTable(m_alias, ReplacementFilename, replacements);
+			result += m_boostService.WriteTable(m_alias, ReplacementFilename, m_replacementList);
 			ProgressText = tempDisplay + result;
 
 			return result;
@@ -473,7 +465,7 @@ namespace _4_Tell
 				categories.Add(new AttributeRecord
 											{
 												Id = id,
-												Name = category.Descendants().Where(x => x.Name.LocalName.Equals("CategoryName")).Select(x => x.Value.Replace(",", "")).DefaultIfEmpty("").Single()
+												Name = RemoveHtmlFormatting(category.Descendants().Where(x => x.Name.LocalName.Equals("CategoryName")).Select(x => x.Value.Replace(",", "")).DefaultIfEmpty("").Single())
 											});
 			}
 

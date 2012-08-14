@@ -39,22 +39,22 @@ public partial class _Default {
     protected global::System.Web.UI.WebControls.TextBox TextBox_clientAlias;
     
     /// <summary>
-    /// Button_Export control.
+    /// Button_FullExport control.
     /// </summary>
     /// <remarks>
     /// Auto-generated field.
     /// To modify move field declaration from designer file to code-behind file.
     /// </remarks>
-    protected global::System.Web.UI.WebControls.Button Button_Export;
+    protected global::System.Web.UI.WebControls.Button Button_FullExport;
     
     /// <summary>
-    /// Button_ExportSelected control.
+    /// Button_Update control.
     /// </summary>
     /// <remarks>
     /// Auto-generated field.
     /// To modify move field declaration from designer file to code-behind file.
     /// </remarks>
-    protected global::System.Web.UI.WebControls.Button Button_ExportSelected;
+    protected global::System.Web.UI.WebControls.Button Button_Update;
     
     /// <summary>
     /// Button_UpdateAllClients control.
@@ -82,33 +82,6 @@ public partial class _Default {
     /// To modify move field declaration from designer file to code-behind file.
     /// </remarks>
     protected global::System.Web.UI.WebControls.Button Button_CancelThread;
-    
-    /// <summary>
-    /// Checkbox_AllSales control.
-    /// </summary>
-    /// <remarks>
-    /// Auto-generated field.
-    /// To modify move field declaration from designer file to code-behind file.
-    /// </remarks>
-    protected global::System.Web.UI.WebControls.CheckBox Checkbox_AllSales;
-    
-    /// <summary>
-    /// Checkbox_SalesUpdate control.
-    /// </summary>
-    /// <remarks>
-    /// Auto-generated field.
-    /// To modify move field declaration from designer file to code-behind file.
-    /// </remarks>
-    protected global::System.Web.UI.WebControls.CheckBox Checkbox_SalesUpdate;
-    
-    /// <summary>
-    /// Checkbox_Catalog control.
-    /// </summary>
-    /// <remarks>
-    /// Auto-generated field.
-    /// To modify move field declaration from designer file to code-behind file.
-    /// </remarks>
-    protected global::System.Web.UI.WebControls.CheckBox Checkbox_Catalog;
     
     /// <summary>
     /// UpdatePanel_Results control.

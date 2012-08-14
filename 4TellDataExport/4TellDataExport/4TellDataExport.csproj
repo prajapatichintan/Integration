@@ -35,9 +35,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\..\..\..\Downloads\Json45r6\Bin\Net40\Newtonsoft.Json.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Core" />
@@ -58,195 +55,12 @@
     <Reference Include="System.Web.ApplicationServices" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\..\..\..\..\..\..\..\ProgramData\4-Tell2.0\Buticul\upload\resources.xml">
-      <Link>App_Data\resources.xml</Link>
-    </Content>
-    <Content Include="..\..\..\..\..\..\..\..\..\ProgramData\4-Tell2.0\ClientSettings.xml">
-      <Link>App_Data\ClientSettings.xml</Link>
-      <SubType>Designer</SubType>
-    </Content>
     <Content Include="About.aspx" />
     <Content Include="Account\ChangePassword.aspx" />
     <Content Include="Account\ChangePasswordSuccess.aspx" />
     <Content Include="Account\Login.aspx" />
     <Content Include="Account\Register.aspx" />
     <None Include="Properties\DataSources\System.Xml.Linq.XElement.datasource" />
-    <None Include="Service References\GoStore_Buticul\item.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Service References\GoStore_Buticul\Magento.wsdl" />
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.apiEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.associativeEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.catalogAssignedProduct.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.catalogAttributeEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.catalogAttributeOptionEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.catalogCategoryEntityNoChildren.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.catalogCategoryInfo.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.catalogCategoryTree.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.catalogInventoryStockItemEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.catalogProductAttributeMediaTypeEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.catalogProductAttributeSetEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.catalogProductEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.catalogProductImageEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.catalogProductLinkAttributeEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.catalogProductLinkEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.catalogProductReturnEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.catalogProductTierPriceEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.catalogProductTypeEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.customerAddressEntityItem.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.customerCustomerEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.customerGroupEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.directoryCountryEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.directoryRegionEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.existsFaltureEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.salesOrderEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.salesOrderImportResult.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.salesOrderInvoiceEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_Buticul\_4_Tell.GoStore_Buticul.salesOrderShipmentEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\item.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Service References\GoStore_condomania\Magento.wsdl" />
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.apiEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.associativeEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.catalogAssignedProduct.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.catalogAttributeEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.catalogAttributeOptionEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.catalogCategoryEntityNoChildren.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.catalogCategoryInfo.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.catalogCategoryTree.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.catalogInventoryStockItemEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.catalogProductAttributeMediaTypeEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.catalogProductAttributeSetEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.catalogProductEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.catalogProductImageEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.catalogProductLinkAttributeEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.catalogProductLinkEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.catalogProductReturnEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.catalogProductTierPriceEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.catalogProductTypeEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.customerAddressEntityItem.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.customerCustomerEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.customerGroupEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.directoryCountryEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.directoryRegionEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.existsFaltureEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.salesOrderEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.salesOrderImportResult.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.salesOrderInvoiceEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_condomania\_4_Tell.GoStore_condomania.salesOrderShipmentEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
     <None Include="Service References\GoStore_MageGo\item.xsd">
       <SubType>Designer</SubType>
     </None>
@@ -330,94 +144,6 @@
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
     <None Include="Service References\GoStore_MageGo\_4_Tell.GoStore_MageGo.salesOrderShipmentEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\item.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\Magento1.wsdl" />
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.apiEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.associativeEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.catalogAssignedProduct.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.catalogAttributeEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.catalogAttributeOptionEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.catalogCategoryEntityNoChildren.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.catalogCategoryInfo.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.catalogCategoryTree.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.catalogInventoryStockItemEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.catalogProductAttributeMediaTypeEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.catalogProductAttributeSetEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.catalogProductEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.catalogProductImageEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.catalogProductLinkAttributeEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.catalogProductLinkEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.catalogProductReturnEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.catalogProductTierPriceEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.catalogProductTypeEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.customerAddressEntityItem.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.customerCustomerEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.customerGroupEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.directoryCountryEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.directoryRegionEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.existsFaltureEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.salesOrderEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.salesOrderImportResult.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.salesOrderInvoiceEntity.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\_4_Tell.GoStore_TheLuvo.salesOrderShipmentEntity.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
     <None Include="Service References\GoStore_wsTea\item.xsd">
@@ -518,28 +244,9 @@
       <Generator>WCF Proxy Generator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
     </None>
-    <None Include="Service References\GoStore_condomania\configuration91.svcinfo" />
-    <None Include="Service References\GoStore_condomania\configuration.svcinfo" />
-    <None Include="Service References\GoStore_condomania\Reference.svcmap">
-      <Generator>WCF Proxy Generator</Generator>
-      <LastGenOutput>Reference.cs</LastGenOutput>
-    </None>
     <None Include="Service References\GoStore_MageGo\configuration91.svcinfo" />
     <None Include="Service References\GoStore_MageGo\configuration.svcinfo" />
     <None Include="Service References\GoStore_MageGo\Reference.svcmap">
-      <Generator>WCF Proxy Generator</Generator>
-      <LastGenOutput>Reference.cs</LastGenOutput>
-    </None>
-    <None Include="Service References\GoStore_TheLuvo\configuration91.svcinfo" />
-    <None Include="Service References\GoStore_TheLuvo\configuration.svcinfo" />
-    <None Include="Service References\GoStore_TheLuvo\Reference.svcmap">
-      <Generator>WCF Proxy Generator</Generator>
-      <LastGenOutput>Reference.cs</LastGenOutput>
-    </None>
-    <Content Include="App_Data\clientsettings %282%29.xml" />
-    <None Include="Service References\GoStore_Buticul\configuration91.svcinfo" />
-    <None Include="Service References\GoStore_Buticul\configuration.svcinfo" />
-    <None Include="Service References\GoStore_Buticul\Reference.svcmap">
       <Generator>WCF Proxy Generator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
     </None>
@@ -574,27 +281,9 @@
     <Compile Include="MagentoExtractor.cs" />
     <Compile Include="MagentoExtractorStatic.cs" />
     <Compile Include="MivaMerchantExtractor.cs" />
-    <Compile Include="MivaMerchant\CatalogItem.cs" />
-    <Compile Include="MivaMerchant\CategoryItem.cs" />
-    <Compile Include="MivaMerchant\SaleItem.cs" />
     <Compile Include="Replicator.cs" />
     <Compile Include="RestAccess.cs" />
-    <Compile Include="Service References\GoStore_Buticul\Reference.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </Compile>
-    <Compile Include="Service References\GoStore_condomania\Reference.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </Compile>
     <Compile Include="Service References\GoStore_MageGo\Reference.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </Compile>
-    <Compile Include="Service References\GoStore_TheLuvo\Reference.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Reference.svcmap</DependentUpon>
@@ -674,6 +363,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Code\" />
+    <Folder Include="App_Data\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Account\Web.config" />
@@ -683,10 +373,7 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
-    <WCFMetadataStorage Include="Service References\GoStore_Buticul\" />
-    <WCFMetadataStorage Include="Service References\GoStore_condomania\" />
     <WCFMetadataStorage Include="Service References\GoStore_MageGo\" />
-    <WCFMetadataStorage Include="Service References\GoStore_TheLuvo\" />
     <WCFMetadataStorage Include="Service References\GoStore_wsTea\" />
     <WCFMetadataStorage Include="Service References\ws_3dCartApi\" />
   </ItemGroup>

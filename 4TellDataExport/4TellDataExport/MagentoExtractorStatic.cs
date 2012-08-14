@@ -18,8 +18,9 @@ namespace _4_Tell
 	//using GoStore_MageGo;
 	//using GoStore;
 	//using GoStore_TheLuvo;
-	using GoStore_condomania;
+	//using GoStore_condomania;
 	//using GoStore_Buticul;
+	using GoStore_wsTea;
 	using Utilities;
 	using Utilities.DynamicProxyLibrary;
 
@@ -43,7 +44,7 @@ namespace _4_Tell
 			m_thumbnailFormat = "//s4e787b99edc22.img.gostorego.com/802754/cdn/media/s4/e7/87/b9/9e/dc/22/catalog/product/cache/1/small_image/306x392/9df78eab33525d08d6e5fb8d27136e95/i/m/img_{0}_detail_1.jpg";
 		}
 
-		public override void LogSalesOrder(string orderID)
+		public override void LogSalesOrder(string orderId)
 		{
 			StopWatch stopWatch = new StopWatch(true);
 			string result = "AutoSalesLog: ";

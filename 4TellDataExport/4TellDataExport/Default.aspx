@@ -32,10 +32,10 @@
 						Width="100px"></asp:TextBox>
 				</td>
 				<td class="uploadbutton">
-					<asp:Button ID="Button_Export" runat="server" Text="Export All" Width="30%"
+					<asp:Button ID="Button_FullExport" runat="server" Text="Full Export" Width="35%"
 						onclick="Button_export_Click" />
-					<asp:Button ID="Button_ExportSelected" runat="server" Text="Export Selected Options" Width="50%"
-						onclick="Button_selections_Click" />
+					<asp:Button ID="Button_Update" runat="server" Text="Update Only" Width="35%"
+						onclick="Button_update_Click" />
 				</td>
 			</tr>
 			<tr>
@@ -50,11 +50,7 @@
 						Text="Cancel Thread" Width="40%" onclick="Button_CancelThread_Click" />
 				</td>
         <td class="selections" align="right">
-					<asp:CheckBox ID="Checkbox_AllSales" Text="All Sales" runat="server" 
-						oncheckedchanged="Checkbox_AllSales_CheckedChanged" />
-					<asp:CheckBox ID="Checkbox_SalesUpdate" Text="Sales Update" runat="server" 
-						Checked="True" oncheckedchanged="Checkbox_SalesUpdate_CheckedChanged" />
-					<asp:CheckBox ID="Checkbox_Catalog" Text="Catalog" runat="server" Checked="True" />
+				</td>
 			</tr>
 			<tr>
         <td colspan="3">&nbsp;</td>
