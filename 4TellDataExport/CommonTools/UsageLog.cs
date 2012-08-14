@@ -27,6 +27,8 @@ namespace _4_Tell.Utilities
 		private int m_logDay = DateTime.Now.Day - 1; //first day of month = 0
 		private int m_logMonth = DateTime.Now.Month - 1; //January = 0
 		private int m_logYear = DateTime.Now.Year % 10; //last digit of year is index
+		private string m_alias = string.Empty;
+		private string m_type = string.Empty;
 
 		//commonly requested values
 		public int Today { get { return RollingDays[DateTime.Now.Day - 1]; } }
@@ -41,6 +43,12 @@ namespace _4_Tell.Utilities
 				foreach (int month in RollingMonths) total += month;
 				return total; 
 			} 
+		}
+
+		public Accumulator(string alias, string type)
+		{
+			m_alias = alias;
+			m_type = type;
 		}
 
 		//Resetters
@@ -118,27 +126,59 @@ namespace _4_Tell.Utilities
 			RollingDays[m_logDay] += num;
 			RollingMonths[m_logMonth] += num;
 			RollingYears[m_logYear] += num;
+//#if DEBUG_VERBOSE
+//      BoostLog log = BoostLog.Instance;
+//      if (log != null)
+//      {
+//        string msg = "Accumulator.Add --" + QuickReport();
+//        log.WriteEntry(msg, EventLogEntryType.Information);
+//      }
+//#endif
 		}
 
 		public void NewDay(DateTime now)
 		{
 			SetLogDay(now.Day - 1);
 			SetLogHour(now.Hour);
+#if DEBUG_VERBOSE
+			BoostLog log = BoostLog.Instance;
+			if (log != null)
+			{
+				string msg = "Accumulator.NewDay --" + QuickReport();
+				log.WriteEntry(msg, EventLogEntryType.Information);
+			}
+#endif
 		}
 
 		public void NewMonth(DateTime now)
 		{
 			SetLogMonth(now.Month - 1);
 			NewDay(now);
+#if DEBUG_VERBOSE
+			BoostLog log = BoostLog.Instance;
+			if (log != null)
+			{
+				string msg = "Accumulator.NewMonth --" + QuickReport();
+				log.WriteEntry(msg, EventLogEntryType.Information);
+			}
+#endif
 		}
 
 		public void NewYear(DateTime now)
 		{
 			SetLogHour(now.Hour);
 			NewMonth(now);  //January = 0
+#if DEBUG_VERBOSE
+			BoostLog log = BoostLog.Instance;
+			if (log != null)
+			{
+				string msg = "Accumulator.NewYear --" + QuickReport();
+				log.WriteEntry(msg, EventLogEntryType.Information);
+			}
+#endif
 		}
 
-		public string ReportUsage(string delimiter = "\t") //one line of tab-delimited values
+		public string ReportUsage(string delimiter = "\t", string eol = "\n") //one line of tab-delimited values
 		{
 			string report = "";
 			foreach (int h in RollingHours)
@@ -149,11 +189,17 @@ namespace _4_Tell.Utilities
 				report += delimiter + m.ToString();
 			foreach (long y in RollingYears)
 				report += delimiter + y.ToString();
-			report += "\n";
+			report += eol;
 			return report;
 		}
 
-		public void ReadUsage(StreamReader file, string type)
+		public string QuickReport(string eol = "\n") //common values, one per line
+		{
+			return string.Format("Current Settings for {1} {2}{0}Today: {3}{0}This Year: {4}{0}Last Year: {5}{0}Trailing 12 Months: {6}{0}",
+														 eol, m_alias, m_type, Today.ToString(), ThisYear.ToString(), LastYear.ToString(), TTM.ToString());
+		}
+
+		public void ReadUsage(StreamReader file)
 		{
 			//streamReader must be pointing at the data line for this Accumulator
 			try
@@ -161,36 +207,42 @@ namespace _4_Tell.Utilities
 				string inputLine = file.ReadLine();
 				string[] values = inputLine.Split('\t');
 				if (values.Length < 1) //no data
-					throw new Exception("Error reading usage data for " + type + ". No data.");
-				if (!values[0].Equals(type)) //first parameter is type of this accumulator (Calls, Errors, Warnings)
-					throw new Exception("Error reading usage data for " + type + ". Type = " + values[0]);
+					throw new Exception(string.Format("Error reading usage data for {0} {1}: No data.", m_alias, m_type));
+				if (!values[0].Equals(m_type)) //first parameter is type of this accumulator (Calls, Errors, Warnings)
+					throw new Exception(string.Format("Error reading usage data for {0} {1}: Saved Type = {2}", m_alias, m_type, values[0]));
 				if (values.Length != 78) //type, 10 years, 12 months, 31 days, 24 hours == 78
-					ReadUsageOld(values, type); //see if we are reading from an old usage file
-
-				int index = 1; //zero was type
-				for (int i = 0; i < 10; i++)
-					RollingYears[i] = Convert.ToInt64(values[index++]);
-				for (int i = 0; i < 12; i++)
-					RollingMonths[i] = Convert.ToInt64(values[index++]);
-				for (int i = 0; i < 31; i++)
-					RollingDays[i] = Convert.ToInt32(values[index++]);
-				for (int i = 0; i < 24; i++)
-					RollingHours[i] = Convert.ToInt32(values[index++]);
+					ReadUsageOld(values); //see if we are reading from an old usage file
+				else
+				{
+					int index = 1; //zero was type
+					for (int i = 0; i < 10; i++)
+						RollingYears[i] = Convert.ToInt64(values[index++]);
+					for (int i = 0; i < 12; i++)
+						RollingMonths[i] = Convert.ToInt64(values[index++]);
+					for (int i = 0; i < 31; i++)
+						RollingDays[i] = Convert.ToInt32(values[index++]);
+					for (int i = 0; i < 24; i++)
+						RollingHours[i] = Convert.ToInt32(values[index++]);
+				}
 			}
 			catch (Exception ex)
 			{
-				string msg = ex.Message + "\nAccumulator type: " + type;
-				throw new Exception(msg, ex.InnerException);
+#if DEBUG_VERBOSE
+				BoostLog log = BoostLog.Instance;
+				if (log != null)
+					log.WriteEntry(ex.Message, EventLogEntryType.Error);
+#endif
+				throw ex;
 			}
 		}
 
-		public void ReadUsageOld(string[] values, string type)
+		public void ReadUsageOld(string[] values)
 		{
 			//streamReader must be pointing at the data line for this Accumulator
 			try
 			{
 				if (values.Length != 41) //type, today, this-year, last-year, TTM, plus 12 months, plus 24 hours
-					throw new Exception("Error reading usage data. Data length = " + values.Length.ToString());
+					throw new Exception(string.Format("Error reading old usage data for {0} {1}: Data length = {2}", m_alias, m_type, values.Length.ToString()));
 
 				//old individual values need to be mapped into the new bin (day, year)
 				DateTime now = DateTime.Now;
@@ -205,8 +257,12 @@ namespace _4_Tell.Utilities
 			}
 			catch(Exception ex)
 			{
-				string msg = ex.Message + "\nAccumulator type: " + type;
-				throw new Exception(msg, ex.InnerException);
+#if DEBUG_VERBOSE
+				BoostLog log = BoostLog.Instance;
+				if (log != null)
+					log.WriteEntry(ex.Message, EventLogEntryType.Error);
+#endif
+				throw ex;
 			}
 		}
 	}
@@ -216,27 +272,34 @@ namespace _4_Tell.Utilities
 	//Will need to be updated when file changes to database
 	public class ClientLog
 	{
-		public string Alias = "";
-		public ClientPOC POC = new ClientPOC();
-		public DateTime LastUpload = DateTime.MinValue;
-		public DateTime LastGenerator = DateTime.MinValue;
-		public BoostError LastError = new BoostError();
-		public Accumulator Calls = new Accumulator();
-		public Accumulator Errors = new Accumulator();
-		public Accumulator Warnings = new Accumulator();
+		public string Alias;
+		public ClientPOC POC;
+		public DateTime LastUpload;
+		public DateTime LastGenerator;
+		public BoostError LastError;
+		public Accumulator Calls;
+		public Accumulator Errors;
+		public Accumulator Warnings;
 		public ServiceCallLog ServiceCalls;
 		public ActionsLog Actions;
 		public ClickStreamLog Clicks;
 
-		public ClientLog(string alias, string dataPath)
+		public ClientLog(string alias)
 		{
 			Alias = alias;
-			ServiceCalls = new ServiceCallLog(alias, dataPath);
-			Actions = new ActionsLog(alias, dataPath);
-			Clicks = new ClickStreamLog(alias, dataPath);
+			POC = new ClientPOC();
+			LastUpload = DateTime.MinValue;
+			LastGenerator = DateTime.MinValue;
+			LastError = new BoostError();
+			Calls = new Accumulator(alias, "Calls");
+			Errors = new Accumulator(alias, "Errors");
+			Warnings = new Accumulator(alias, "Warns");
+			ServiceCalls = new ServiceCallLog(alias);
+			Actions = new ActionsLog(alias);
+			Clicks = new ClickStreamLog(alias);
 		}
 
-		public void RestAll()
+		public void ResetAll()
 		{
 			ResetHours();
 			ResetDays();
@@ -334,13 +397,8 @@ namespace _4_Tell.Utilities
 				report += string.Format("Day{0}\t", h);
 			report += "Jan\tFeb\tMar\tApr\tMay\tJun\tJul\tAug\tSep\tOct\tNov\tDec\t";
 			int thisYr = DateTime.Now.Year;
-			string thisYY = thisYr.ToString().Substring(0, 2); //first two digits of year
-			string lastYY = (thisYr - 10).ToString().Substring(0, 2);
-			thisYr %= 10; //get last two digits
-			for (int y = 0; y < thisYr; y++)
-				report += string.Format("{0}{1}\t", thisYY, y);
-			for (int y = thisYr; y < 10; y++)
-				report += string.Format("{0}{1}\t", lastYY, y);
+			for (int y = thisYr-9; y <= thisYr; y++)
+				report += y.ToString();
 			report += "\n";
 
 			//add accumulator reports
@@ -371,9 +429,9 @@ namespace _4_Tell.Utilities
 
 			//read accumulators
 			inputLine = file.ReadLine(); //throw away the header line
-			Calls.ReadUsage(file, "Calls");
-			Errors.ReadUsage(file, "Errors");
-			Warnings.ReadUsage(file, "Warns");
+			Calls.ReadUsage(file);
+			Errors.ReadUsage(file);
+			Warnings.ReadUsage(file);
 			inputLine = file.ReadLine(); //throw away the extra line feed
 		}
 	}
@@ -414,9 +472,9 @@ namespace _4_Tell.Utilities
 		}
 	}
 
-	//transaction Log contains list of transactions
-	//it collects transactions in memory until told to flush to a file
-	//it knows how to archive the file if it gets too big
+	//ServiceCallLog contains list of ServiceCalls
+	//it collects calls in memory until told to flush to a file
+	//it automatically archives the file if it gets too big
 	public class ServiceCallLog
 	{
 		private string m_alias = "";
@@ -430,10 +488,10 @@ namespace _4_Tell.Utilities
 		private const string m_endOfLine = "\r\n";
 		private const int m_maxLogSize = 1000000; //1MB
 
-		public ServiceCallLog(string alias, string path)
+		public ServiceCallLog(string alias)
 		{
 			m_alias = alias;
-			m_path = path + m_callLogFolder;
+			m_path = DataPath.Instance.Root + m_callLogFolder;
 		}
 
 		public void Add(DateTime date, string ip, string method, string parameters, string response, string duration)
@@ -528,11 +586,13 @@ namespace _4_Tell.Utilities
 		public enum pageType
 		{
 			Home,
-			PDP,
+			PDP1,
+			PDP2,
 			Category,
 			Search,
 			Cart,
 			Checkout,
+			Bought,
 			Admin,
 			Other
 		}
@@ -566,17 +626,38 @@ namespace _4_Tell.Utilities
 			if (code.Equals("Hm", StringComparison.CurrentCultureIgnoreCase))
 				type = pageType.Home;
 			else if (code.Equals("Pdp", StringComparison.CurrentCultureIgnoreCase))
-				type = pageType.PDP;
+				type = pageType.PDP1;
+			else if (code.Equals("Pdp1", StringComparison.CurrentCultureIgnoreCase))
+				type = pageType.PDP1;
+			else if (code.Equals("Pdp2", StringComparison.CurrentCultureIgnoreCase))
+				type = pageType.PDP2;
 			else if (code.Equals("Cat", StringComparison.CurrentCultureIgnoreCase))
 				type = pageType.Category;
-			else if (code.Equals("Search", StringComparison.CurrentCultureIgnoreCase))
+			else if (code.Equals("Srch", StringComparison.CurrentCultureIgnoreCase))
 				type = pageType.Search;
 			else if (code.Equals("Cart", StringComparison.CurrentCultureIgnoreCase))
 				type = pageType.Cart;
 			else if (code.Equals("Chkout", StringComparison.CurrentCultureIgnoreCase))
 				type = pageType.Checkout;
+			else if (code.Equals("Bought", StringComparison.CurrentCultureIgnoreCase))
+				type = pageType.Bought;
 			else if (code.Equals("Admin", StringComparison.CurrentCultureIgnoreCase))
 				type = pageType.Admin;
+			//check alternate verbose names second
+			else if (code.Equals("Home", StringComparison.CurrentCultureIgnoreCase))
+				type = pageType.Home;
+			else if (code.Equals("ProductDetail", StringComparison.CurrentCultureIgnoreCase))
+				type = pageType.PDP1;
+			else if (code.Equals("Category", StringComparison.CurrentCultureIgnoreCase))
+				type = pageType.Category;
+			else if (code.Equals("Search", StringComparison.CurrentCultureIgnoreCase))
+				type = pageType.Search;
+			else if (code.Equals("ViewCart", StringComparison.CurrentCultureIgnoreCase))
+				type = pageType.Cart;
+			else if (code.Equals("Checkout", StringComparison.CurrentCultureIgnoreCase))
+				type = pageType.Checkout;
+			else if (code.Equals("Invoice", StringComparison.CurrentCultureIgnoreCase))
+				type = pageType.Bought;
 			else
 				type = pageType.Other; 
 			return type;
@@ -588,8 +669,10 @@ namespace _4_Tell.Utilities
 			{
 				case pageType.Home:
 					return "Hm";
-				case pageType.PDP:
-					return "Pdp";
+				case pageType.PDP1:
+					return "Pdp1";
+				case pageType.PDP2:
+					return "Pdp2";
 				case pageType.Category:
 					return "Cat";
 				case pageType.Search:
@@ -598,6 +681,8 @@ namespace _4_Tell.Utilities
 					return "Cart";
 				case pageType.Checkout:
 					return "Chkout";
+				case pageType.Bought:
+					return "Bought";
 				case pageType.Admin:
 					return "Admin";
 				default:
@@ -609,7 +694,6 @@ namespace _4_Tell.Utilities
 	public class ClickStreamLog
 	{
 		private string m_alias = "";
-		private string m_path = "";
 		private List<ClickRecord> m_clickStream = new List<ClickRecord>();
 		private static object m_clickDataLock = new object();
 		private static object m_clickFileLock = new object();
@@ -618,10 +702,9 @@ namespace _4_Tell.Utilities
 		private const string m_endOfLine = "\r\n";
 		private const int m_maxLogSize = 20000000; //20MB
 
-		public ClickStreamLog(string alias, string path)
+		public ClickStreamLog(string alias)
 		{
 			m_alias = alias;
-			m_path = path;
 		}
 
 		public void Add(string productID, string customerID, string pageCode, DateTime date)
@@ -631,6 +714,9 @@ namespace _4_Tell.Utilities
 
 		public void Add(string productID, string customerID, ClickRecord.pageType pagetype, DateTime date)
 		{
+			if ((customerID == null) || (customerID.Length < 1)) return; //must have ID to make click usable
+			if (pagetype == ClickRecord.pageType.PDP2) return; //ignore second tout on the same page
+
 			ClickRecord item = new ClickRecord(productID, customerID, pagetype, date);
 
 			lock (m_clickDataLock) //must lock so new item is not added while list is being flushed
@@ -654,6 +740,14 @@ namespace _4_Tell.Utilities
 				//clear list each time it is reported
 				m_clickStream = new List<ClickRecord>();
 			}
+#if DEBUG_VERBOSE
+			BoostLog log = BoostLog.Instance;
+			if (log != null)
+			{
+				log.WriteEntry(string.Format("ClickStreamLog.Flush for {1}{0}{2}",
+												Environment.NewLine, m_alias, report), EventLogEntryType.Information);
+			}
+#endif
 
 			//archive the log
 			QueueClickReport(report);
@@ -682,14 +776,14 @@ namespace _4_Tell.Utilities
 				int sundayOffset = (7 - (int)(now.DayOfWeek)) % 7; //Monday offset = 6, Tuesday = 5, etc.
 
 				string filename = m_clickLogPrefix + now.AddDays(sundayOffset).ToString("yyyy-MM-dd");
-				string logPath = m_path + m_alias + "\\upload\\" + filename + ".txt";
+				string logPath = DataPath.Instance.Root + m_alias + "\\upload\\" + filename + ".txt";
 				//archive the log if it is too big and start a new one
 				if (File.Exists(logPath))
 				{
 					FileInfo fInfo = new FileInfo(logPath);
 					if (fInfo.Length > m_maxLogSize)
 					{
-						string tempPath = m_path + m_alias + "\\upload\\" + filename;
+						string tempPath = DataPath.Instance.Root + m_alias + "\\upload\\" + filename;
 						string archive;
 						int ver = 1;
 						while (File.Exists(archive = tempPath + "-v" + ver.ToString() + ".txt"))
@@ -702,7 +796,7 @@ namespace _4_Tell.Utilities
 						addHeader = false;
 				}
 				if (addHeader)
-					report = "Version" + m_delimiter + "3" + m_delimiter
+					report = "Version" + m_delimiter + "3" + m_delimiter //+ FileIO.Version + m_delimiter
 								+ now.ToString("MM-dd-yyyy") + m_endOfLine
 								+ "Product ID" + m_delimiter + "Customer ID"
 								+ m_delimiter + "PageType" + m_delimiter + "Date" + m_endOfLine
@@ -712,6 +806,14 @@ namespace _4_Tell.Utilities
 					file.Write(report);
 				}
 			}
+#if DEBUG_VERBOSE
+			BoostLog log = BoostLog.Instance;
+			if (log != null)
+			{
+				log.WriteEntry(string.Format("WriteClickLog for {1}{0}{2}",
+												Environment.NewLine, m_alias, report), EventLogEntryType.Information);
+			}
+#endif
 		}
 
 	}
@@ -745,7 +847,6 @@ namespace _4_Tell.Utilities
 	public class ActionsLog
 	{
 		private string m_alias = "";
-		private string m_path = "";
 		private List<ActionRecord> m_actions = new List<ActionRecord>();
 		private static object m_actionsDataLock = new object();
 		private static object m_actionsFileLock = new object();
@@ -754,10 +855,9 @@ namespace _4_Tell.Utilities
 		private const string m_endOfLine = "\r\n";
 		private const int m_maxLogSize = 5000000; //5MB
 
-		public ActionsLog(string alias, string path)
+		public ActionsLog(string alias)
 		{
 			m_alias = alias;
-			m_path = path;
 		}
 
 		public void Add(string productID, string customerID, int quantity, DateTime date)
@@ -809,14 +909,14 @@ namespace _4_Tell.Utilities
 			lock (m_actionsFileLock) //must lock to avoid simultaneous writes
 			{
 				string filename = m_actionsLogPrefix + DateTime.Now.ToString("yyyy-MM");
-				string logPath = m_path + m_alias + "\\upload\\" + filename + ".txt";
+				string logPath = DataPath.Instance.Root + m_alias + "\\upload\\" + filename + ".txt";
 				//archive the log if it is too big and start a new one
 				if (File.Exists(logPath))
 				{
 					FileInfo fInfo = new FileInfo(logPath);
 					if (fInfo.Length > m_maxLogSize)
 					{
-						string tempPath = m_path + m_alias + "\\upload\\" + filename;
+						string tempPath = DataPath.Instance.Root + m_alias + "\\upload\\" + filename;
 						string archive;
 						int ver = 1;
 						while (File.Exists(archive = tempPath + "-v" + ver.ToString() + ".txt"))
@@ -827,7 +927,7 @@ namespace _4_Tell.Utilities
 						addHeader = false;
 				}
 				if (addHeader)
-					report = "Version" + m_delimiter + "3" + m_delimiter
+					report = "Version" + m_delimiter + "3" + m_delimiter //+ FileIO.Version + m_delimiter
 								+ DateTime.Now.ToString("MM-dd-yyyy") + m_endOfLine
 								+ "Product ID" + m_delimiter + "Customer ID"
 								+ m_delimiter + "Quantity" + m_delimiter + "Date" + m_endOfLine
@@ -850,21 +950,21 @@ namespace _4_Tell.Utilities
 		private string m_errMsg = "";
 		private bool m_readOnly = false;
 
+		//transaction log parameters
+		private static System.Timers.Timer m_transactionWriteTimer = null;
+		private static bool m_initCalled = false;
+
 		//usage log parameters
 		private bool disposed = false;
 		private static List<ClientLog> m_clients = new List<ClientLog>();
 		private static DateTime m_lastWriteDate = DateTime.MinValue;
 		private static DateTime m_lastCheckDate = DateTime.MinValue;
-		private static System.Timers.Timer m_dateCheckTimer = new System.Timers.Timer();
+		private static System.Timers.Timer m_dateCheckTimer = null;
 		private static object m_logWriteLock = new object();
 		private static string m_usageLogName = "BoostLog.txt";
 		private static string m_boostVersion = "2.0";
 		private static long m_totalRecsServed = 0;
 		private static readonly UsageLog m_instance = new UsageLog();
-
-		//transaction log parameters
-		private static System.Timers.Timer m_transactionWriteTimer = new System.Timers.Timer();
-		private static bool m_initCalled = false;
 		#endregion
 		
 		#region External Parameters
@@ -897,11 +997,15 @@ namespace _4_Tell.Utilities
 			try
 			{
 				//usage log settings
-				m_dataPath = DataPath.Instance.Root;
+				m_dataPath = DataPath.Instance.Root;  
 				ReadUsage(); //Try to read past usage data from log
 				//set a timer to check the date/time each hour and update accumulator indices
 				CheckDate(); //See if we need to move to a new day or new year
+				m_dateCheckTimer = new System.Timers.Timer();
 				m_dateCheckTimer.Interval = 60 * 60 * 1000; // converted to ms
+//#if DEBUG_VERBOSE
+//        m_dateCheckTimer.Interval = 5 * 60 * 1000; // converted to ms
+//#endif
 				m_dateCheckTimer.Elapsed += new ElapsedEventHandler(OnDateCheckTimer);
 				m_dateCheckTimer.Enabled = true;
 
@@ -916,13 +1020,21 @@ namespace _4_Tell.Utilities
 					}
 					catch
 					{
-						m_errMsg = "Warning--Illegal timer frequency: " + logFrequency;
+						m_errMsg = "Warning--Illegal timer frequency: " + logFrequency; 
 						frequency = 15; //default 
 					}
 
+					m_transactionWriteTimer = new System.Timers.Timer(); 
 					m_transactionWriteTimer.Interval = frequency * 60 * 1000; //converted to ms
 					m_transactionWriteTimer.Elapsed += new ElapsedEventHandler(OnTransactionWriteTimer);
 					m_transactionWriteTimer.Enabled = true;
+#if DEBUG_VERBOSE
+					m_errMsg = "Usage Log initialization complete.\nLog frequency = " + logFrequency;
+					if (m_transactionWriteTimer != null)
+						m_errMsg += "\nTransactionWriteTimer interval = " + m_transactionWriteTimer.Interval.ToString();
+					if (m_dateCheckTimer != null)
+						m_errMsg += "\nDateCheckTimer interval = " + m_dateCheckTimer.Interval.ToString();
+#endif
 				}
 			}
 			catch (Exception ex)
@@ -940,12 +1052,22 @@ namespace _4_Tell.Utilities
 		//NOTE: Not critical since we write the usage log every hour
 		public void Dispose()
 		{
+#if DEBUG_VERBOSE
+			BoostLog log = BoostLog.Instance;
+			if (log != null)
+				log.WriteEntry("UsageLog.Dispose()", EventLogEntryType.Information);
+#endif
 			Dispose(true);
 			GC.SuppressFinalize(this);
 		}
 		protected virtual void Dispose(bool disposing)
 		{
-      if(!this.disposed)
+#if DEBUG_VERBOSE
+			BoostLog log = BoostLog.Instance;
+			if (log != null)
+				log.WriteEntry("UsageLog.Dispose(disposing)", EventLogEntryType.Information);
+#endif
+			if (!this.disposed)
       {
 				if (disposing)
 				{
@@ -958,6 +1080,11 @@ namespace _4_Tell.Utilities
 
 		private void OnDateCheckTimer(object source, ElapsedEventArgs e)
 		{
+#if DEBUG_VERBOSE
+			BoostLog log = BoostLog.Instance;
+			if (log != null)
+				log.WriteEntry("UsageLog.OnDateCheckTimer", EventLogEntryType.Information);
+#endif
 			CheckDate(); //update accumulators for new time/date 
 		}
 
@@ -981,7 +1108,7 @@ namespace _4_Tell.Utilities
 			//client not found
 			if (add)
 			{
-				client = new ClientLog(alias, m_dataPath);
+				client = new ClientLog(alias);
 				m_clients.Add(client);
 			}
 			return false;
@@ -1053,7 +1180,7 @@ namespace _4_Tell.Utilities
 
 		//record the latest error that was encountered
 		//return true if an existing client and false if it had to be added
-		public bool AddLastError(BoostError error)
+		public bool SetLastError(BoostError error)
 		{
 			ClientLog client;
 			bool found = GetClient(error.Alias, out client);
@@ -1131,7 +1258,7 @@ namespace _4_Tell.Utilities
 			//logic:
 			// This gets called from the timer (currently every hour, but could change so don't count on it)
 			// All comparison logic should be here and not in the client logs or accumulators so it is done once per timer.
-			// Since hourly checks are the normal behavior, that should be the fastest ruote
+			// Since hourly checks are the normal behavior, that should be the fastest route
 			//   Update hour index, clearing the new hour slot
 			//	 Check for day change or year change and update accordingly
 			// Allow larger lags up to 24 hours. 
@@ -1180,7 +1307,7 @@ namespace _4_Tell.Utilities
 
 				//clear all logs
 				foreach (ClientLog c in m_clients)
-					c.RestAll();
+					c.ResetAll();
 			}
 
 			//queue a thread to write the log
@@ -1208,7 +1335,8 @@ namespace _4_Tell.Utilities
 					foreach (ClientLog c in m_clients)
 						report += c.ReportUsage();
 
-					log.WriteEntry(report, EventLogEntryType.Information);
+					if (log != null)
+						log.WriteEntry(report, EventLogEntryType.Information);
 
 					//create a log file that can be read back in on startup
 					using (StreamWriter file = new StreamWriter(m_dataPath + logName))
@@ -1223,7 +1351,8 @@ namespace _4_Tell.Utilities
 				string errMsg = "Error during WriteUsage\nException: " + ex.Message;
 				if (ex.InnerException != null)
 					errMsg += "\nInner Exception: " + ex.InnerException.Message;
-				log.WriteEntry(errMsg, EventLogEntryType.Error);
+				if (log != null)
+					log.WriteEntry(errMsg, EventLogEntryType.Error);
 			}
 		}
 
@@ -1276,7 +1405,9 @@ namespace _4_Tell.Utilities
 				if (ex.InnerException != null)
 					errMsg += "\nInner Exception: " + ex.InnerException.Message;
 				errMsg += errSuffix;
-				BoostLog.Instance.WriteEntry(errMsg, EventLogEntryType.Warning);
+				BoostLog log = BoostLog.Instance;
+				if (log != null)
+					log.WriteEntry(errMsg, EventLogEntryType.Warning);
 				return false;
 			}
 			return true;
@@ -1287,6 +1418,11 @@ namespace _4_Tell.Utilities
 
 		private void OnTransactionWriteTimer(object source, ElapsedEventArgs e)
 		{
+#if DEBUG_VERBOSE
+			BoostLog log = BoostLog.Instance;
+			if (log != null)
+				log.WriteEntry("UsageLog.OnTransactionWriteTimer", EventLogEntryType.Information);
+#endif
 			ThreadPool.QueueUserWorkItem(delegate
 			{
 				FlushTransactions(); //record current transaction data 
@@ -1312,7 +1448,9 @@ namespace _4_Tell.Utilities
 					string errMsg = "Error flushing transaction log: " + ex.Message;
 					if (ex.InnerException != null)
 						errMsg += "\nInner Exception: " + ex.InnerException.Message;
-					BoostLog.Instance.WriteEntry(errMsg, EventLogEntryType.Error, alias);
+					BoostLog log = BoostLog.Instance;
+					if (log != null)
+						log.WriteEntry(errMsg, EventLogEntryType.Error, alias);
 				}
 			}
 		}
@@ -1425,14 +1563,17 @@ namespace _4_Tell.Utilities
 			catch (Exception ex)
 			{
 				BoostLog log = BoostLog.Instance;
-				log.Suffix = "ip = " + ip
+				if (log != null)
+				{
+					log.Suffix = "ip = " + ip
 										+ "\nmethod = " + method
 										+ "\nparameters = " + parameters
 										+ "\nresult = " + result;
-				string errMsg = "Error logging transaction: " + ex.Message;
-				if (ex.InnerException != null)
-					errMsg += "\nInnerException: " + ex.InnerException.Message;
-				log.WriteEntry(errMsg, EventLogEntryType.Warning, clientAlias);
+					string errMsg = "Error logging transaction: " + ex.Message;
+					if (ex.InnerException != null)
+						errMsg += "\nInnerException: " + ex.InnerException.Message;
+					log.WriteEntry(errMsg, EventLogEntryType.Warning, clientAlias);
+				}
 			}
 		}
 
@@ -1497,15 +1638,18 @@ namespace _4_Tell.Utilities
 			{
 				try
 				{
-						alias = c.Alias;
-						c.Actions.Flush();
+					alias = c.Alias;
+					c.Actions.Flush();
+					c.Clicks.Flush();
 				}
 				catch (Exception ex)
 				{
 					string errMsg = "Error flushing actions log: " + ex.Message;
 					if (ex.InnerException != null)
 						errMsg += "\nInner Exception: " + ex.InnerException.Message;
-					BoostLog.Instance.WriteEntry(errMsg, EventLogEntryType.Error, alias);
+					BoostLog log = BoostLog.Instance;
+					if (log != null)
+						log.WriteEntry(errMsg, EventLogEntryType.Error, alias);
 				}
 			}
 		}
@@ -1546,7 +1690,7 @@ namespace _4_Tell.Utilities
 			if (found)
 			{
 				client.Actions.Add(productID, customerID, quantity, date);
-				client.Clicks.Add(productID, customerID, ClickRecord.pageType.Checkout, date); //logging an action means checkout was completed
+				client.Clicks.Add(productID, customerID, ClickRecord.pageType.Bought, date); //logging an action means checkout was completed
 			}
 		}
 

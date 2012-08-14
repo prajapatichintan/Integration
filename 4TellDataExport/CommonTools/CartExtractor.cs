@@ -1,19 +1,14 @@
 ﻿using System;
-using System.Configuration;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq; //XElement
-using System.Web;
 using System.Text;			//StringBuilder
-using System.Net;				//HttpWebRequest/Response
-using System.IO;				//StreamReader
 using System.Threading; //Thread
 using System.Security.Cryptography;
 
 namespace _4_Tell
 {
 	using Utilities;
-	using Utilities.DynamicProxyLibrary;
 
 	#region DataRecord Classes
 
@@ -111,6 +106,23 @@ namespace _4_Tell
 		}
 	}
 
+	public class ManualRecommendationRecord
+	{
+		public string PrimaryId { get; set; }
+		public string RecommendedId { get; set; }
+		public float Likelihood { get; set; }
+
+		public string ToString(string delimiter = "\t", string newLine = "\r\n")
+		{
+			return string.Format("{2}{0}{3}{0}{4}{1}", delimiter, newLine, PrimaryId, RecommendedId, Likelihood);
+		}
+
+		static public string Header(string delimiter = "\t", string newLine = "\r\n")
+		{
+			return string.Format("Product Id{0}Rec Id{0}Likelihood{1}", delimiter, newLine);
+		}
+	}
+
 	#endregion
 	/// <summary>
 	/// Abstract base class for shopping cart data extractor classes
@@ -123,16 +135,16 @@ namespace _4_Tell
 		{
 			private enum Comparitor
 			{
-				eq, //	=		(string or numerical)
-				ne, //	!=	(string or numerical)
-				lt, //	<		(numerical only)
-				gt, //	>		(numerical only)
-				le, //	<=	(numerical only)
-				ge, //	>=	(numerical only)
-				contains, //	contains (string only)
-				startsWith,  //	startsWith (string only)
-				endsWith,  //	endsWith (string only)
-				copy // no comparison required just copy the value as a result
+				Eq, //	=		(string or numerical)
+				Ne, //	!=	(string or numerical)
+				Lt, //	<		(numerical only)
+				Gt, //	>		(numerical only)
+				Le, //	<=	(numerical only)
+				Ge, //	>=	(numerical only)
+				Contains, //	contains (string only)
+				StartsWith,  //	startsWith (string only)
+				EndsWith,  //	endsWith (string only)
+				Copy // no comparison required just copy the value as a result
 			}
 
 			public string Name;
@@ -150,107 +162,102 @@ namespace _4_Tell
 
 			public string GetSqlEquation()
 			{
-				string equation = this.FieldName;
-				Comparitor c = (Comparitor)Enum.Parse(typeof(Comparitor), this.Comparison, true);
+				string equation = FieldName;
+				var c = (Comparitor)Enum.Parse(typeof(Comparitor), Comparison, true);
 				switch (c)
 				{
-					case Comparitor.eq:
+					case Comparitor.Eq:
 						equation += " = ";
 						break;
-					case Comparitor.ne:
+					case Comparitor.Ne:
 						equation += " <> ";
 						break;
-					case Comparitor.lt:
+					case Comparitor.Lt:
 						equation += " < ";
 						break;
-					case Comparitor.gt:
+					case Comparitor.Gt:
 						equation += " > ";
 						break;
-					case Comparitor.le:
+					case Comparitor.Le:
 						equation += " <= ";
 						break;
-					case Comparitor.ge:
+					case Comparitor.Ge:
 						equation += " >= ";
 						break;
-					case Comparitor.contains: //should not call GetSqlEquation for these types
-					case Comparitor.startsWith: 
-					case Comparitor.endsWith:
-					case Comparitor.copy:
+					case Comparitor.Contains: //should not call GetSqlEquation for these types
+					case Comparitor.StartsWith: 
+					case Comparitor.EndsWith:
+					case Comparitor.Copy:
 					default:
-						throw new Exception("Illegal comparison operator (" + this.Comparison + ")");
+						throw new Exception("Illegal comparison operator (" + Comparison + ")");
 				}
-				equation += this.Value;
+				equation += Value;
 				return equation;
 			}
 
 			public bool Compare(string actual)
 			{
-				if ((actual == null) || (actual.Length < 1)) return false;
+				if (string.IsNullOrEmpty(actual)) return false;
 
-				double a = 0, b = 0;
-				bool numerical = false;
-				if (IsNumerical(actual, out a) && IsNumerical(this.Value, out b))
-					numerical = true;
+				double a, b = 0;
+				bool numerical = IsNumerical(actual, out a) && IsNumerical(Value, out b);
 
-				Comparitor c = (Comparitor)Enum.Parse(typeof(Comparitor), this.Comparison, true);
+				var c = (Comparitor)Enum.Parse(typeof(Comparitor), Comparison, true);
 				switch (c)
 				{
-					case Comparitor.eq:
+					case Comparitor.Eq:
 						if (numerical) return (a == b);
-						return actual.Equals(this.Value);
-					case Comparitor.ne:
+						return Value != null && actual.Equals(Value);
+					case Comparitor.Ne:
 						if (numerical) return (a != b);
-						return !actual.Equals(this.Value);
-					case Comparitor.lt:
+						return Value != null && !actual.Equals(Value);
+					case Comparitor.Lt:
 						if (numerical) return (a < b);
-						throw new Exception("Illegal string comparison (" + this.Comparison + ")");
-					case Comparitor.gt:
+						throw new Exception("Illegal string comparison (" + Comparison + ")");
+					case Comparitor.Gt:
 						if (numerical) return (a > b);
-						throw new Exception("Illegal string comparison (" + this.Comparison + ")");
-					case Comparitor.le:
+						throw new Exception("Illegal string comparison (" + Comparison + ")");
+					case Comparitor.Le:
 						if (numerical) return (a <= b);
-						throw new Exception("Illegal string comparison (" + this.Comparison + ")");
-					case Comparitor.ge:
+						throw new Exception("Illegal string comparison (" + Comparison + ")");
+					case Comparitor.Ge:
 						if (numerical) return (a >= b);
-						throw new Exception("Illegal string comparison (" + this.Comparison + ")");
-					case Comparitor.contains:
-						return actual.Contains(this.Value);
-					case Comparitor.startsWith:
-						return actual.StartsWith(this.Value);
-					case Comparitor.endsWith:
-						return actual.EndsWith(this.Value);
-					case Comparitor.copy:
-						this.Name = actual;
+						throw new Exception("Illegal string comparison (" + Comparison + ")");
+					case Comparitor.Contains:
+						return Value != null && actual.Contains(Value);
+					case Comparitor.StartsWith:
+						return Value != null && actual.StartsWith(Value);
+					case Comparitor.EndsWith:
+						return Value != null && actual.EndsWith(Value);
+					case Comparitor.Copy:
+						Name = actual;
 						return true; //always true, just copy the result
 					default:
-						throw new Exception("Illegal comparison operator (" + this.Comparison + ")");
+						throw new Exception("Illegal comparison operator (" + Comparison + ")");
 				}
 			}
 
 			public List<string> Evaluate(IEnumerable<XElement> items, string returnField)
 			{
-				var results = new List<string>();
+				//var results = new List<string>();
 				//IEnumerable<XElement> matchingRecords =
 				//          from row in items
-				//          where Compare(Client.GetValue(row, this.FieldName))
+				//          where Compare(Client.GetValue(row, FieldName))
 				//          select row;
 				//foreach (XElement record in matchingRecords)
 				//  results.Add(Client.GetValue(record, returnField));
-				results = items.Where(x => Compare(Client.GetValue(x, this.FieldName))).Select(x => Client.GetValue(x, returnField)).ToList();
+				var results = items.Where(x => Compare(Client.GetValue(x, FieldName))).Select(x => Client.GetValue(x, returnField)).ToList();
 				return results;
 			}
 
 			public List<string> Evaluate(IEnumerable<Dictionary<string, string>> items, string returnField)
 			{
-				var results = new List<string>();
 				IEnumerable<Dictionary<string, string>> matchingRecords =
 									from row in items
-									where Compare(row[this.FieldName])
+									where Compare(row[FieldName])
 									select row;
-				foreach (Dictionary<string, string> record in matchingRecords)
-					results.Add(record[returnField]);
 
-				return results;
+				return matchingRecords.Select(record => record[returnField]).ToList();
 			}
 
 			public bool IsNumerical(string input, out double dval)
@@ -270,15 +277,15 @@ namespace _4_Tell
 
 		protected class ReplacementCondition
 		{
-			public enum repType
+			public enum RepType
 			{
-				catalog,
-				item,
-				invalid
+				Catalog,
+				Item,
+				Invalid
 			}
 
 			public string Name;
-			public repType Type;
+			public RepType Type;
 			public string OldName;
 			public string NewName;
 
@@ -289,11 +296,11 @@ namespace _4_Tell
 				NewName = newName;
 				try
 				{
-					Type = (repType)Enum.Parse(typeof(repType),type, true);
+					Type = (RepType)Enum.Parse(typeof(RepType),type, true);
 				}
 				catch
 				{
-					Type = repType.invalid;
+					Type = RepType.Invalid;
 				}
 			}
 
@@ -309,13 +316,14 @@ namespace _4_Tell
 			{
 				public string CatId;
 				public string GroupId;
-				public FilterCatDef(string c, string g) { CatId = c; GroupId = g; }
+				public FilterCatDef(string catid, string groupid) { CatId = catid; GroupId = groupid; }
 			}
-			private List<string> m_ignoreCats;
-			private List<FilterCatDef> m_filterCats;
-			private List<string> m_universalCats;
-			private List<string> m_excludeCats;
-			private List<string> m_excludeItems;
+			private readonly List<string> m_ignoreCats;
+			private readonly List<FilterCatDef> m_filterCats;
+			private readonly List<string> m_universalCats;
+			private readonly List<string> m_excludeCats;
+			private readonly List<string> m_excludeItems;
+			private readonly Dictionary<string, IEnumerable<string>> m_parentList;
 			public bool FiltersExist { get { return m_filterCats.Count > 0; } }
 
 			public CategoryConditions()
@@ -325,32 +333,22 @@ namespace _4_Tell
 				m_universalCats = new List<string>();
 				m_excludeCats = new List<string>();
 				m_excludeItems = new List<string>();
+				m_parentList = new Dictionary<string, IEnumerable<string>>();
 			}
 
 			public void AddCat(string type, string value, string groupId = null)
 			{
-				if ((type == null) || (type.Length < 1) || (value == null) || (value.Length < 1))
+				if (string.IsNullOrEmpty(type) || (string.IsNullOrEmpty(value)))
 					return;
 
 				if (type.Equals("ignore", StringComparison.CurrentCultureIgnoreCase))
-				{
 					m_ignoreCats.Add(value);
-				}
 				else if (type.Equals("exclude", StringComparison.CurrentCultureIgnoreCase))
-				{
 					m_excludeCats.Add(value);
-				}
 				else if (type.Equals("filter", StringComparison.CurrentCultureIgnoreCase))
-				{
-					if ((groupId != null) && (groupId.Length > 0))
-						m_filterCats.Add(new FilterCatDef(value, groupId));
-					else
-						m_filterCats.Add(new FilterCatDef(value, value));
-				}
+					m_filterCats.Add(new FilterCatDef(value, string.IsNullOrEmpty(groupId) ? value : groupId));
 				else if (type.Equals("universal", StringComparison.CurrentCultureIgnoreCase))
-				{
 					m_universalCats.Add(value);
-				}
 			}
 
 			public bool Ignored(string value)
@@ -370,7 +368,7 @@ namespace _4_Tell
 
 			public List<string> Filtered(string value) //returns a list of all filter groups defined for the given att1ID
 			{
-				List<string> groups = new List<string>();
+				var groups = new List<string>();
 				try
 				{
 					groups = m_filterCats.Where(x => x.CatId.Equals(value)).Select(x => x.GroupId).ToList();
@@ -381,61 +379,57 @@ namespace _4_Tell
 
 			public bool AnyExcluded(string values) //comma separated list of categories
 			{
-				if ((m_excludeCats.Count < 1) || (values == null) || (values.Length < 1))
+				if ((m_excludeCats.Count < 1) || (string.IsNullOrEmpty(values)))
 					return false;
 
-				char[] separator = { ',' };
-				string[] catList = values.Split(separator);
-				foreach (string cat in catList)
-					if (Excluded(cat)) return true;
-				return false;
+				var catList = values.Split(',').Select(p => p.Trim()).ToList();
+				return catList.Any(Excluded);
 			}
 
 			public bool AnyUniversal(string values) //comma separated list of categories
 			{
-				if ((values == null) || (values.Length < 1))
+				if (string.IsNullOrEmpty(values))
 					return false;
 
-				char[] separator = { ',' };
-				string[] catList = values.Split(separator);
-				foreach (string cat in catList)
-					if (Universal(cat)) return true;
-
-				return false;
+				var catList = values.Split(',').Select(p => p.Trim()).ToList();
+				return catList.Any(Universal);
 			}
 
 			public string AnyFiltered(string values) //comma separated list of categories
 			{
-				if ((values == null) || (values.Length < 1))
+				if (string.IsNullOrEmpty(values))
 					return "";
 
-				char[] separator = { ',' };
-				string[] catList = values.Split(separator);
-				List<string> matches = new List<string>();
+				var catList = values.Split(',').Select(p => p.Trim()).ToList();
+				var matches = new List<string>();
 				foreach (string cat in catList)
 					matches.AddRange(Filtered(cat));
-				if (matches.Count < 1) return "";
-
-				return matches.Aggregate((w, j) => string.Format("{0},{1}", w, j));
+				return matches.Count < 1 ? "" : matches.Aggregate((w, j) => string.Format("{0},{1}", w, j));
 			}
 
 			public string RemoveIgnored(string values) //comma separated list of categories
 			{
-				if ((m_ignoreCats.Count < 1) || (values == null) || (values.Length < 1))
+				if ((m_ignoreCats.Count < 1) || (string.IsNullOrEmpty(values)))
 					return values;
 
-				char[] separator = { ',' };
-				string[] catList = values.Split(separator);
-				string newValues = "";
-				bool first = true;
-				foreach (string cat in catList)
-					if (!Ignored(cat))
-					{
-						if (first) first = false;
-						else newValues += ",";
-						newValues += cat;
-					}
-				return newValues;
+				var catList = values.Split(',').Select(p => p.Trim()).ToList();
+
+				return catList.Where(cat => !Ignored(cat)).Aggregate((w, j) => string.Format("{0},{1}", w, j));
+
+				//string newValues = "";
+				//bool first = true;
+				//foreach (string cat in catList.Where(cat => !Ignored(cat)))
+				//{
+				//  if (first) first = false;
+				//  else newValues += ",";
+				//  newValues += cat;
+				//}
+				//return newValues;
+			}
+
+			public IEnumerable<string> RemoveIgnored(IEnumerable<string> catList) //list of categories
+			{
+				return catList.Where(cat => !Ignored(cat)).ToList();
 			}
 
 			public void AddExcludedItem(string id)
@@ -448,21 +442,125 @@ namespace _4_Tell
 			{
 				return m_excludeItems;
 			}
+
+			//add one parent/child relationship to the parent list
+			public void AddParent(string child, string parent)
+			{
+				AddParents(child, new List<string> {parent});
+			}
+
+			//add a many-parent/child relationship to the parent list
+			public void AddParents(string child, IEnumerable<string> newParents)
+			{
+				//make sure there are no duplicates and child is not one of the new parents
+				newParents = newParents.Distinct().Where(p => !p.Equals("0") && !child.Equals(p)); 
+				if (!newParents.Any()) return;
+
+				IEnumerable<string> parents;
+				if (m_parentList.TryGetValue(child, out parents)) //existing child
+				{
+					parents = parents.Union(newParents);  //no duplicates added
+					m_parentList[child] = parents;
+				}
+				else //new child
+					m_parentList.Add(child, newParents);
+			}
+
+			//find all distinct parents and ancestors for a list of categories
+			public IEnumerable<string> GetAllParents(IEnumerable<string> catList)
+			{
+				return catList.Select(GetAllParents).Aggregate(catList, (current, ancestors) => current.Union(ancestors).ToList());
+			}
+
+			//find all distinct parents and ancestors for a single category
+			public IEnumerable<string> GetAllParents(string child)
+			{
+				if (!m_parentList.Keys.Contains(child)) return new List<string>(); //no parents
+
+				var closeParents = RemoveIgnored(m_parentList[child]);
+				return closeParents.Select(GetAllParents).Aggregate(closeParents, (current, ancestors) => current.Union(ancestors).ToList());
+			}
+		}
+
+		protected class ManualRecommendations
+		{
+			public struct ManualRecCondition
+			{
+				public string Fieldname;
+				public bool Include; //false = exclude
+				public ManualRecCondition(string fieldname, bool include = true) { Fieldname = fieldname; Include = include; }
+			}
+			public List<ManualRecCondition> Conditions { get; private set; }
+			public List<ManualRecommendationRecord> Records { get; private set; } 
+			public bool Enabled { get; private set; }
+			private object m_createLock;
+
+			public ManualRecommendations()
+			{
+				Enabled = false;
+				m_createLock = new object();
+			}
+
+
+			public void AddCondition(string fieldname, bool include = true)
+			{
+				if (!Enabled)
+				{
+					lock (m_createLock)
+					{
+						if (!Enabled) //make sure it wasn't created while waiting for the lock
+						{
+							Enabled = true;
+							Conditions = new List<ManualRecCondition>();
+							Records = new List<ManualRecommendationRecord>();
+						}
+					}
+				}
+				Conditions.Add(new ManualRecCondition(fieldname, include));
+			}
+
+			public void AddRecords(string primaryId, XElement product)
+			{
+				if (!Enabled || !Conditions.Any()) return;
+
+				foreach (var c in Conditions)
+				{
+					var value = Client.GetValue(product, c.Fieldname);
+					if (string.IsNullOrEmpty(value)) continue;
+
+					//NOTE: This assumes one product field with a comma separated list for includes
+					//			and a second for excludes for each product
+					//			includes will be ranked in order of how they are listed
+					var recs = value.Split(',').Select(p => p.Trim()).ToList();
+					float likelihood = 0; //zero likelihood means to exclude this item
+					if (c.Include) likelihood = 0.99F; //Otherwise items will be ranked extremely high and in order of listing
+					foreach (var r in recs)
+					{
+						Records.Add(new ManualRecommendationRecord
+						            	{
+						            		PrimaryId = primaryId, 
+														RecommendedId = r, 
+														Likelihood = likelihood
+						            	});
+						if (likelihood > 0) likelihood -= 0.01F;
+					}
+				}
+			}
 		}
 
 		public class UploadTimer
 		{
 			public enum UploadRate
 			{
-				daily,
-				weekly,
-				monthly
+				Daily,
+				Weekly,
+				Monthly
 			}
 
 			public bool Enabled = false;
 			public bool SalesUpdate = false;
 			public bool Catalog = false;
-			public UploadRate Rate = UploadRate.daily;
+			public UploadRate Rate = UploadRate.Daily;
 			public int HourOfDay = 0;
 			public DayOfWeek DayOfWeek = DayOfWeek.Monday;
 			public int WeekOfMonth = 0;
@@ -496,7 +594,7 @@ namespace _4_Tell
 				}
 				catch
 				{
-					Rate = UploadRate.daily;
+					Rate = UploadRate.Daily;
 				}
 
 				string hourOfDay = Client.GetAttribute(settings, "hourOfDay");
@@ -512,11 +610,11 @@ namespace _4_Tell
 				string dayOfWeek = Client.GetAttribute(settings, "dayOfWeek");
 				try
 				{
-					this.DayOfWeek = (DayOfWeek)Enum.Parse(typeof(DayOfWeek), dayOfWeek, true);
+					DayOfWeek = (DayOfWeek)Enum.Parse(typeof(DayOfWeek), dayOfWeek, true);
 				}
 				catch
 				{
-					this.DayOfWeek =  DayOfWeek.Monday;
+					DayOfWeek =  DayOfWeek.Monday;
 				}
 
 				string weekOfMonth = Client.GetAttribute(settings, "weekOfMonth");
@@ -543,17 +641,17 @@ namespace _4_Tell
 			public bool IsItTime(DateTime now)
 			{
 				if (!Enabled) return false;
-				if (now.Hour != this.HourOfDay) return false;
-				if (Rate == UploadRate.daily) return true;
-				if (this.DayOfMonth > 0)
+				if (now.Hour != HourOfDay) return false;
+				if (Rate == UploadRate.Daily) return true;
+				if (DayOfMonth > 0)
 				{
-					if (now.Day == this.DayOfMonth) return true;
-					else return false;
+					if (now.Day == DayOfMonth) return true;
+					return false;
 				}
-				if (now.DayOfWeek != this.DayOfWeek) return false;
-				if (Rate == UploadRate.weekly) return true;
+				if (now.DayOfWeek != DayOfWeek) return false;
+				if (Rate == UploadRate.Weekly) return true;
 				//monthly
-				switch (this.WeekOfMonth)
+				switch (WeekOfMonth)
 				{
 					case 1:
 						if (now.Day < 8) return true;
@@ -593,9 +691,10 @@ namespace _4_Tell
 		protected const string Att2Filename = "Attribute2Names.txt";
 		protected const string ExclusionFilename = "Exclusions.txt";
 		protected const string ReplacementFilename = "Replacements.txt";
+		protected const string ManualCrossSellFilename = "CrossSell_x.txt";
+		protected const string ManualUpSellFilename = "UpSell_x.txt";
 		protected const string SalesFilenameFormat = "Sales-{0}.txt";
 
-		private string m_serviceUri = "";
 		protected RestAccess m_boostService;
 		protected static readonly MD5 m_hash = MD5.Create();
 
@@ -607,7 +706,7 @@ namespace _4_Tell
 		protected string m_pocEmail;
 		protected string m_reportLevel;
 		protected string m_storeShortUrl;
-		protected string m_storeLongUrl;
+		protected string m_apiUrl;
 		protected string m_apiUserName;
 		protected string m_apiKey;
 		protected int m_monthsToExport;
@@ -618,14 +717,19 @@ namespace _4_Tell
 		protected string m_secondAttField;
 		protected List<Condition> m_exclusions;
 		protected List<Condition> m_filters;
-		protected List<ReplacementCondition> m_replacements; //need to extend conditions for replacement fields!!
 		protected CategoryConditions m_catConditions;
+		protected List<ReplacementCondition> m_replacements;
+		protected List<ReplacementRecord> m_repRecords;
+		protected ManualRecommendations m_manualCrossSell;
+		protected ManualRecommendations m_manualUpSell;
 		protected bool m_exclusionsEnabled;
 		protected bool m_replacementsEnabled;
 		protected bool m_filtersEnabled;
-		protected string m_rulesType;
+		protected string m_rulesEnabled;
 		protected string m_universalFilterName;
 		protected List<UploadTimer> m_uploadTimers;
+
+		private bool m_extractSalesUpdate;
 		#endregion
 
 		static public string CommonHeader //first header line in export file (set date dynamically each time it is used)
@@ -638,12 +742,16 @@ namespace _4_Tell
 		}
 
 		#region Base Methods
-		public CartExtractor(string alias, XElement settings)
+
+		protected CartExtractor(string alias, XElement settings, bool extractSalesUpdate = false)
 		{
 			m_alias = alias;
+			m_extractSalesUpdate = extractSalesUpdate;
 			m_boostService = RestAccess.Instance;
 			m_catConditions = new CategoryConditions();
-			//ParseSettings(settings);
+			m_repRecords = new List<ReplacementRecord>();
+			m_manualCrossSell = new ManualRecommendations();
+			m_manualUpSell = new ManualRecommendations();
 		}
 
 		protected virtual void ParseSettings(XElement settings)
@@ -660,7 +768,9 @@ namespace _4_Tell
 				if (m_storeShortUrl.EndsWith("/"))
 					m_storeShortUrl = m_storeShortUrl.Remove(m_storeShortUrl.Length - 1); //remove final slash
 			}
-			m_storeLongUrl =  "http://" + m_storeShortUrl;
+			m_apiUrl = Client.GetValue(settings, "apiUrl");
+ 			if (m_apiUrl.Length < 1)
+				m_apiUrl = m_storeShortUrl;
 			m_apiUserName = Client.GetValue(settings, "apiUserName");
 			m_apiKey = Client.GetValue(settings, "apiKey");
 			if (!Client.GetValue(out m_monthsToExport, settings, "monthsToExport"))
@@ -671,10 +781,13 @@ namespace _4_Tell
 				m_minLikelihood = defaultMinLikelihood;
 			if (!Client.GetValue(out m_minCommon, settings, "minCommon"))
 				m_minCommon = defaultMinCommon;
-			m_secondAttEnabled = true; //default to true
-			m_secondAttField = "manufacturer"; 
 			XElement sa = settings.Element("secondAttribute");
-			if (sa != null)
+			if (sa == null)
+			{
+				m_secondAttEnabled = true; //default to true
+				m_secondAttField = "manufacturer"; 
+			}
+			else
 			{
 				m_secondAttEnabled = Client.GetAttribute(sa, "enabled").Equals("true");
 				m_secondAttField = Client.GetAttribute(sa, "fieldName");
@@ -698,7 +811,9 @@ namespace _4_Tell
 
 			m_filters = null;
 			m_filtersEnabled = false;
-			m_rulesType = Client.GetValue(settings, "rulesType");
+			m_rulesEnabled = Client.GetValue(settings, "rulesEnabled");
+			if (string.IsNullOrEmpty(m_rulesEnabled))
+				m_rulesEnabled = Client.GetValue(settings, "rulesType"); //older version
 			XElement filterConditions = settings.Element("filterConditions");
 			if (filterConditions != null)
 			{
@@ -714,9 +829,9 @@ namespace _4_Tell
 				if (m_filters.Count > 0)
 				{
 					m_filtersEnabled = true;
-					if (!m_rulesType.Contains("Filter")) {
-						if (m_rulesType.Length > 0) m_rulesType += ","; //can have more than one rule enabled
-						m_rulesType += "Filter";
+					if (!m_rulesEnabled.Contains("Filter")) {
+						if (m_rulesEnabled.Length > 0) m_rulesEnabled += ","; //can have more than one rule enabled
+						m_rulesEnabled += "Filter";
 					}
 				}
 			}
@@ -755,8 +870,30 @@ namespace _4_Tell
 					m_filtersEnabled = true;
 			}
 
+			XElement manualCrossSellConditions = settings.Element("manualCrossSellConditions");
+			if (manualCrossSellConditions != null)
+			{
+				foreach (XElement cat in manualCrossSellConditions.Elements("condition"))
+				{
+					string fieldName = Client.GetAttribute(cat, "fieldName");
+					string type = Client.GetAttribute(cat, "type");
+					m_manualCrossSell.AddCondition(fieldName, type.Equals("include", StringComparison.CurrentCultureIgnoreCase));
+				}
+			}
+
+			XElement manualUpSellConditions = settings.Element("manualUpSellConditions");
+			if (manualUpSellConditions != null)
+			{
+				foreach (XElement cat in manualUpSellConditions.Elements("condition"))
+				{
+					string fieldName = Client.GetAttribute(cat, "fieldName");
+					string type = Client.GetAttribute(cat, "type");
+					m_manualUpSell.AddCondition(fieldName, type.Equals("include", StringComparison.CurrentCultureIgnoreCase));
+				}
+			}
+
 			IEnumerable<XElement> upTimers = settings.Elements("uploadTimer");
-			if (upTimers != null)
+			if (upTimers.Any())
 			{
 				m_uploadTimers = new List<UploadTimer>();
 				foreach (XElement ut in upTimers)
@@ -772,97 +909,90 @@ namespace _4_Tell
 		{
 			if (m_uploadTimers == null) return;
 
-			foreach (UploadTimer ut in m_uploadTimers)
-				if (ut.IsItTime(now))
-				{
-					//queue a thread to write the log
-					ThreadPool.QueueUserWorkItem(delegate(object s)
-					{
-						GetData((UploadTimer)s);
-					}, ut);
-				}
+			foreach (var ut in m_uploadTimers.Where(ut => ut.IsItTime(now)))
+				ThreadPool.QueueUserWorkItem(s => GetData((UploadTimer) s), ut);
 		}
 
 		public void GetData(UploadTimer ut)
 		{
-			GetData(ut.SalesUpdate, false, ut.Catalog);
+			//the upload timare used to specify which components to update, but now this is controlled by the type of cart
+			GetData();
 		}
 
-		public void GetData(bool salesUpdate = true, bool allSales = false, bool catalog = false)
+		public void GetData(bool fullExport = false, bool getCatalog = true)
 		{
+			//choices are update only or full export
+			//all normal exports include catalog and related files (exclusions, attNames, etc)
+			//full export also includes all sales files (could be pulling from xml depending on the cart)
+			//update will include the current sales month only if m_extractSalesUpdate is true for this cart
+
 			//TODO: move progress reporting to a supporting class and standardize messaging from cart classes
 			string result = ProgressText = string.Format("Extracting data for {0} from {1}{2}", m_alias, m_cartName, Environment.NewLine);
 			m_log.WriteEntry(result, System.Diagnostics.EventLogEntryType.Information, m_alias);
 
-			StopWatch stopWatch = new StopWatch(true);
+			var stopWatch = new StopWatch(true);
 
 			try
 			{
-			ServiceTest:
+#if DEBUG
 				//Make sure service is awake and prevent timeouts later 
 				ProgressText += "Testing Boost Service Connection...";
 				result += "Boost Service Test: " + m_boostService.Test4TellServiceConnection();
 				result += " (" + stopWatch.Lap() + ")";
 				ProgressText = result;
-
-#if DEBUG
-			//goto ProductDetails; //use for testing to jump to specific exports
 #endif
 
-			Sales:
 				//------------------Sales.txt------------------
-				if (salesUpdate || allSales)
+				if (fullExport || m_extractSalesUpdate)
 				{
-					if (salesUpdate)
-						result += GetSalesUpdate();
-					else
+					if (fullExport)
 					{
 						result += GetAllSales();
 						result += "\nSales Export Complete (total: " + stopWatch.Lap() + ")";
 					}
+					else
+						result += GetSalesUpdate();
 					ProgressText = result;
 				}
-			Catalog:
-				//------------------Catalog.txt------------------
-				if (catalog)
+
+				if (getCatalog)
 				{
+				//------------------Catalog.txt------------------
 					result += GetCatalog();
 					result += " (" + stopWatch.Lap() + ")";
 					ProgressText = result;
-				}
-			Exclusions:
+
 				//------------------Exclusions.txt------------------
-				if (catalog)
-				{
 					result += GetExclusions();
 					result += " (" + stopWatch.Lap() + ")";
 					ProgressText = result;
-				}
-			Replacements:
+
 				//------------------Replacements.txt------------------
-				if (catalog)
-				{
 					result += GetReplacements();
 					result += " (" + stopWatch.Lap() + ")";
 					ProgressText = result;
-				}
-			Att1:
+
 				//------------------Attribute1Items.txt------------------
-				if (catalog)
-				{
 					result += GetAtt1Names();
 					result += " (" + stopWatch.Lap() + ")";
 					ProgressText = result;
-				}
-			Att2:
+
 				//------------------Attribute2Items.txt------------------
-				if (catalog)
-				{
 					result += GetAtt2Names();
 					result += " (" + stopWatch.Lap() + ")";
 					ProgressText = result;
 				}
-			Config:
+
+				//------------------ManualCrossSell.txt------------------
+				result += GetManualCrossSellRecs();
+				result += " (" + stopWatch.Lap() + ")";
+				ProgressText = result;
+
+				//------------------ManualUpSell.txt------------------
+				result += GetManualUpSellRecs();
+				result += " (" + stopWatch.Lap() + ")";
+				ProgressText = result;
+
 				//------------------ConfigBoost.txt------------------
 				result += GetConfig();
 				result += " (" + stopWatch.Lap() + ")";
@@ -900,18 +1030,18 @@ namespace _4_Tell
 
 		public void GetAllData()
 		{
-			GetData(false, true, true);
+			GetData(true);
 		}
 
 		public void GetDataUpdate()
 		{
-			GetData(true, false, true);
+			GetData();
 		}
 
 		protected string GetSalesUpdate()
 		{
 			string result = "";
-			StopWatch stopWatch = new StopWatch(true);
+			var stopWatch = new StopWatch(true);
 
 			//------------------Sales_YYYY-MM.txt------------------
 			//first update sales file list
@@ -926,8 +1056,8 @@ namespace _4_Tell
 		protected string GetAllSales()
 		{
 			string result = "";
-			DateTime exportDate = DateTime.Now;
-			StopWatch stopWatch = new StopWatch(true);
+			var exportDate = DateTime.Now;
+			var stopWatch = new StopWatch(true);
 			string tempDisplay = ProgressText;
 
 			for (int month = 0; month < m_monthsToExport; month++)
@@ -943,18 +1073,52 @@ namespace _4_Tell
 			return result;
 		}
 
+		protected string GetManualCrossSellRecs()
+		{
+			var result = string.Format("{0}{1}: ", Environment.NewLine, ManualCrossSellFilename);
+			if (!m_manualCrossSell.Enabled)
+				return result + "(not used)";
+
+			int count = m_manualCrossSell.Records.Count;
+			if (count < 1)
+				return result + "(no data)";
+
+			var countDisplay = string.Format("({0} items) ", count);
+			ProgressText += result;
+			ProgressText += countDisplay + "Uploading...";
+
+			result += countDisplay + m_boostService.WriteTable(m_alias, ManualCrossSellFilename, m_manualCrossSell.Records);
+			return result;
+		}
+
+		protected string GetManualUpSellRecs()
+		{
+			var result = string.Format("{0}{1}: ", Environment.NewLine, ManualUpSellFilename);
+			if (!m_manualUpSell.Enabled)
+				return result + "(not used)";
+
+			int count = m_manualUpSell.Records.Count;
+			if (count < 1)
+				return result + "(no data)";
+
+			var countDisplay = string.Format("({0} items) ", count);
+			ProgressText += result;
+			ProgressText += countDisplay + "Uploading...";
+
+			result += countDisplay + m_boostService.WriteTable(m_alias, ManualUpSellFilename, m_manualUpSell.Records);
+			return result;
+		}
 
 		protected string GetConfig()
 		{
 			string result = "";
-			string filename = "ConfigBoost.txt";
+			const string filename = "ConfigBoost.txt";
 			result += "\n" + filename + ": ";
-			string tempDisplay = ProgressText;
 			ProgressText += result + "Uploading...";
 
 			//Fixed configuration settings may be changed below as long as tabs and formatting are preserved
 			//Note: If this is desired it would be better to add more fields to the UI form
-			StringBuilder data = new StringBuilder();
+			var data = new StringBuilder();
 			data.Append("Version\t3\r\n");
 			if (m_pocName.Length > 0)
 				data.Append("Owner\t" + m_pocName + "\r\n");
@@ -974,8 +1138,8 @@ namespace _4_Tell
 			data.Append("ReplacementsExists\t" + (m_replacementsEnabled ? "1" : "0") + "\r\n");
 			if (m_monthsToExport > 0)
 				data.Append("MaxSalesDataAgeInMonths\t" + m_monthsToExport.ToString() + "\r\n");
-			if (m_rulesType.Length > 0)
-				data.Append("RulesType\t" + m_rulesType + "\r\n");
+			if (m_rulesEnabled.Length > 0)
+				data.Append("RulesEnabled\t" + m_rulesEnabled + "\r\n");
 			if (m_filtersEnabled)
 				data.Append("UniversalFilterNames\t" + m_universalFilterName + "\r\n");
 			result += m_boostService.WriteTable(m_alias, filename, data);
@@ -984,14 +1148,14 @@ namespace _4_Tell
 		#endregion
 
 		#region Abstract Methods
-		public abstract void LogSalesOrder(string orderID);
+		public abstract void LogSalesOrder(string orderId);
 		//for the following, final result should be in the format of "Filename: success/failure status (time spent)"
 		protected abstract string GetCatalog();
 		protected abstract string GetSalesMonth(DateTime exportDate, string filename);
 		protected abstract string GetExclusions();
 		protected abstract string GetReplacements();
 		protected abstract string GetAtt1Names();
-		protected abstract string GetAtt2Names();		
+		protected abstract string GetAtt2Names();
 		#endregion
 
 		#region Utilities
@@ -1017,20 +1181,12 @@ namespace _4_Tell
 			//first check for excluded categories
 			if (m_catConditions.AnyExcluded(p.Att1Id))
 				m_catConditions.AddExcludedItem(p.ProductId);
-			else //then check all other exclusion ruels
+			else //then check all other exclusion rules
 			{
 				if (m_exclusions != null)
 				{
-					foreach (var c in m_exclusions)
-					{
-						string value = Client.GetValue(product, c.FieldName);
-						if (value.Length > 0)
-							if (c.Compare(value))
-							{
-								m_catConditions.AddExcludedItem(p.ProductId); //add to cat excluded items so it will be prepolulated for GetExclusions
-								break; //no need to check additional conditions once we have a reason to exclude
-							}
-					}
+					if (m_exclusions.Any(c => c.Compare(Client.GetValue(product, c.FieldName))))
+						m_catConditions.AddExcludedItem(p.ProductId); //add to cat excluded items so it will be prepolulated for GetExclusions
 				}
 			}
 
@@ -1051,20 +1207,37 @@ namespace _4_Tell
 				}
 				if (m_filters != null)
 				{
-					bool firstItem = p.Filter.Length < 1;
-					foreach (Condition c in m_filters)
-					{
-						if (c.Compare(Client.GetValue(product, c.FieldName)))
-						{
-							if (firstItem) firstItem = false;
-							else p.Filter += ",";
-							p.Filter += c.Name;
-						}
-					}
-				}				
+					//bool firstItem = p.Filter.Length < 1;
+					//foreach (Condition c in m_filters.Where(c => c.Compare(Client.GetValue(product, c.FieldName))))
+					//{
+					//  if (firstItem) firstItem = false;
+					//  else p.Filter += ",";
+					//  p.Filter += c.Name;
+					//}
+					p.Filter += m_filters.Where(
+																			c => c.Compare(Client.GetValue(product, c.FieldName))
+																			).Select(	
+																								c => c.Name
+																								).Aggregate((w, j) => string.Format("{0},{1}", w, j));
+				}
 				if (p.Filter.Length < 1) //if no matches then assume universal
 					p.Filter = m_universalFilterName;
 			}
+
+			//check for full catalog replacement 
+			if (m_replacements != null && m_replacements[0].Type.Equals(ReplacementCondition.RepType.Catalog))
+			{
+				var oldId = Client.GetValue(product, m_replacements[0].OldName);
+				var newId = Client.GetValue(product, m_replacements[0].NewName);
+				if (!m_repRecords.Any(r => r.OldId.Equals(oldId))) //can only have one replacement for each item
+					m_repRecords.Add(new ReplacementRecord { OldId = oldId, NewId = newId });
+			}
+
+			//check for manual recs
+			if (m_manualCrossSell.Enabled)
+				m_manualCrossSell.AddRecords(p.ProductId, product);
+			if (m_manualUpSell.Enabled)
+				m_manualUpSell.AddRecords(p.ProductId, product);
 		}
 	
 		public string RemoveIllegalChars(string source, char[] illigalChars)
@@ -1078,9 +1251,9 @@ namespace _4_Tell
 		}
 
 		//standard Hash saved as a hex string
-		public string GetHash(string inputString)
+		public string GetHash(string source)
 		{
-			byte[] input = Encoding.UTF8.GetBytes(inputString);
+			byte[] input = Encoding.UTF8.GetBytes(source);
 			byte[] result = m_hash.ComputeHash(input);
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < result.Length; i++)
@@ -1089,6 +1262,23 @@ namespace _4_Tell
 			}
 			return sb.ToString();
 		}
+
+		public string RemoveHtmlFormatting(string source)
+		{
+			int index = 0;
+			while (true)
+			{
+				int begin = source.IndexOf('<', index);
+				if (begin < 0) break;
+				int end = source.IndexOf('>', begin);
+				if (end < 0) break;
+				//found some formatting
+				source = source.Remove(begin, end - begin + 1);
+				index = begin;
+			}
+			return source;
+		}
+
 		#endregion
 
 	}//class

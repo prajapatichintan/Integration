@@ -38,6 +38,15 @@ namespace _4_Tell
 		public static RestAccess Instance { get { return m_instance; } }
 		#endregion
 
+		//public string WriteTable<T>(string alias, string dataName, List<T> data, bool lastFile = false)
+		//{
+		//  var sb = new StringBuilder(CartExtractor.CommonHeader + T.Header()); //need static CartExtractor.GetHeader(T)
+		//  foreach (var a in data.Distinct())
+		//    sb.Append(a.ToString());
+
+		//  return WriteTable(alias, dataName, sb, lastFile);
+		//}
+
 		public string WriteTable(string alias, string dataName, List<AttributeRecord> data, bool lastFile = false)
 		{
 			var sb = new StringBuilder(CartExtractor.CommonHeader + AttributeRecord.Header());
@@ -77,6 +86,15 @@ namespace _4_Tell
 		public string WriteTable(string alias, string dataName, List<ReplacementRecord> data, bool lastFile = false)
 		{
 			var sb = new StringBuilder(CartExtractor.CommonHeader + ReplacementRecord.Header());
+			foreach (var a in data.Distinct())
+				sb.Append(a.ToString());
+
+			return WriteTable(alias, dataName, sb, lastFile);
+		}
+
+		public string WriteTable(string alias, string dataName, List<ManualRecommendationRecord> data, bool lastFile = false)
+		{
+			var sb = new StringBuilder(CartExtractor.CommonHeader + ManualRecommendationRecord.Header());
 			foreach (var a in data.Distinct())
 				sb.Append(a.ToString());
 
@@ -134,7 +152,10 @@ namespace _4_Tell
 
 		public string Test4TellServiceConnection()
 		{
-			string result = Get4TellResponseREST("ServiceTest");
+			string result;
+			if (m_uploadRemote)
+				result = Get4TellResponseREST("ServiceTest");
+			else result = "Remote upload is not enabled.";
 			return result;
 		}
 

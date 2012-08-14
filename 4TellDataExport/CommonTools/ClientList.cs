@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections; //ArrayList
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Xml.Linq;	//XElement
 using System.Linq;
-using System.Web;
 using System.Threading;
+using _4_Tell.Utilities;
 
 namespace _4_Tell
 {
-	using Utilities;
 	using IO;
 
 	public enum CartType
@@ -70,6 +70,10 @@ namespace _4_Tell
 			{
 				try
 				{
+#if DEBUG
+					string test = GetValue(settings, "cartType");
+					BoostLog.Instance.WriteEntry(string.Format("CartType for {0} is {1}", Alias, test),EventLogEntryType.Information, Alias);
+#endif
 					CartType = (CartType)Enum.Parse(typeof(CartType), GetValue(settings, "cartType"), true);
 					string level = GetValue(settings, "cartLevel");
 					switch (CartType)
@@ -103,9 +107,9 @@ namespace _4_Tell
 							break;
 					}
 				}
-				catch (Exception ex)
+				catch
 				{
-					CartType = _4_Tell.CartType.other;
+					CartType = CartType.other;
 					m_cart = null;
 					CartLevel = 0;
 				}
@@ -119,27 +123,24 @@ namespace _4_Tell
 		}
 		
 
-		public void LogSalesOrder(string orderID, bool useThread = false)
+		public void LogSalesOrder(string orderId, bool useThread = false)
 		{
 			if (m_cart == null)
 				throw new Exception("Cannot log sales for client " + Alias);
 
 			if (useThread)
 			{
-				ThreadPool.QueueUserWorkItem(delegate(object s)
-				{
-					m_cart.LogSalesOrder((string)s);
-				}, orderID);
+				ThreadPool.QueueUserWorkItem(s => m_cart.LogSalesOrder((string) s), orderId);
 			}
 			else
 			{
 				InProgress = true;
-				m_cart.LogSalesOrder(orderID);
+				m_cart.LogSalesOrder(orderId);
 				InProgress = false;
 			}
 		}
 
-		public void ExtractData(bool salesUpdate = true, bool allSales = false, bool catalog = false, bool useThread = false)
+		public void ExtractData(bool fullExport = false, bool getCatalog = true, bool useThread = false)
 		{
 			if (m_cart == null)
 				throw new Exception("Cannot extract data for client " + Alias);
@@ -148,13 +149,13 @@ namespace _4_Tell
 			{
 				ThreadPool.QueueUserWorkItem(delegate
 				{
-					m_cart.GetData(salesUpdate, allSales, catalog);
+					m_cart.GetData(fullExport, getCatalog);
 				});
 			}
 			else
 			{
 				InProgress = true;
-				m_cart.GetData(salesUpdate, allSales, catalog);
+				m_cart.GetData(fullExport, getCatalog);
 				InProgress = false;
 			}
 		}
@@ -197,46 +198,6 @@ namespace _4_Tell
 				m_cart.GetAllData();
 				InProgress = false;
 			}
-		}
-
-		public void ExtractSalesUpdate(bool useThread = false)
-		{
-			if (m_cart == null)
-				throw new Exception("Cannot extract data for client " + Alias);
-
-			if (useThread)
-			{
-				ThreadPool.QueueUserWorkItem(delegate
-				{
-					m_cart.GetData(true, false, false); //just sales update
-				});
-			}
-			else
-			{
-				InProgress = true;
-				m_cart.GetData(true, false, false);
-				InProgress = false;
-			}
-		}
-
-		public void ExtractCatalog(bool useThread = false)
-		{
-			if (m_cart == null)
-				throw new Exception("Cannot extract data for client " + Alias);
-
-			if (useThread)
-			{
-				ThreadPool.QueueUserWorkItem(delegate
-				{
-					m_cart.GetData(false, false, true); //just catalog (and exclusions/replacements)
-				});
-			}
-			else
-			{
-				InProgress = true;
-				m_cart.GetData(false, false, true);
-				InProgress = false;
-			}	
 		}
 
 		public void QueueExports(DateTime now)
@@ -315,7 +276,7 @@ namespace _4_Tell
 				return "Error reading Client Settigns"; //nothing to do
 
 			var clientSettings = settings.Elements("client");
-			if ((clientSettings == null) || (clientSettings.Count() < 1))
+			if (!clientSettings.Any())
 				return "No clients found in Client Settings"; //nothing to do
 
 			string results = "";
@@ -329,7 +290,7 @@ namespace _4_Tell
 					string alias = Client.GetValue(x, "alias");
 					if (enabled && alias.Length > 0)
 					{
-						Client c = new Client(x);
+						var c = new Client(x);
 						m_clients.Add(c);
 						results += string.Format("Client {0} created with cart type {1}{2}", alias, c.CartType, Environment.NewLine);
 					}
@@ -354,10 +315,7 @@ namespace _4_Tell
 
 		public Client Get(string alias)
 		{
-			foreach (Client c in m_clients)
-				if (c.Alias.Equals(alias))
-					return c;
-			return null; //not found
+			return m_clients.FirstOrDefault(c => c.Alias.Equals(alias));
 		}
 
 		public Client Get(int index)
@@ -369,7 +327,7 @@ namespace _4_Tell
 
 		public ArrayList GetAliasList()
 		{
-			ArrayList aliasList = new ArrayList();
+			var aliasList = new ArrayList();
 			foreach (Client c in m_clients)
 				aliasList.Add(c.Alias);
 			return aliasList;
@@ -377,7 +335,7 @@ namespace _4_Tell
 
 		public ArrayList GetAliasList(CartType cart)
 		{
-			ArrayList aliasList = new ArrayList();
+			var aliasList = new ArrayList();
 			foreach (Client c in m_clients)
 			{
 				if (c.CartType == cart)

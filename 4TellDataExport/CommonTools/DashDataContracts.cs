@@ -43,7 +43,8 @@ namespace _4_Tell.Utilities
 							+ "\",\"commonSales\":\"" + commonSales
 							+ "\",\"totalSales\":\"" + totalSales
 							+ "\",\"totalViews\":\"" + totalViews
-							+ "\",\"source\":\"" + source + "\"}";
+							+ "\",\"source\":\"" + source 
+							+ "\"}";
 		}
 
 		public string[] ToArray()
@@ -79,7 +80,8 @@ namespace _4_Tell.Utilities
 							+ "\",\"att2ID\":\"" + att2ID
 							+ "\",\"filters\":\"" + filters
 							+ "\",\"totalSales\":\"" + totalSales
-							+ "\",\"totalViews\":\"" + totalViews + "\"}";
+							+ "\",\"totalViews\":\"" + totalViews 
+							+ "\"}";
 		}
 		public string[] ToArray()
 		{
@@ -109,27 +111,27 @@ namespace _4_Tell.Utilities
 			}
 			return result.ToArray();
 		}
-		private string GetFirstItem(string csvList, string image, char[] delimeter = null)
+		private string GetFirstItem(string csvList, string image, char delimeter = ',')
 		{
-			if (delimeter == null)
-				delimeter = new char[] { ',' };
+			if (csvList == null) return "";
+
 			string[] ids = csvList.Split(delimeter);
-			if (ids.Length > 0)
-			{
-				string i = ids[0];
-				if ((ids.Length > 1) && (image.Length > 0))
-					i += " " + image;
-				return i;
-			}
-			else return ""; //placeholder
+			if (ids.Length < 1) return "";
+
+			string result = ids[0];
+			if ((ids.Length > 1) && (image != null) && (image.Length > 0))
+				result += " " + image;
+			return result;
 		}
-		private string DropFirstItem(string csvList, string delimeter = ",")
+		private string DropFirstItem(string csvList, char delimeter = ',')
 		{
+			if (csvList == null) return "";
+
 			//drop first item from list
 			int i = csvList.IndexOf(delimeter);
 			if ((i > 0) && (i + 1 < csvList.Length))
 				return csvList.Substring(i + 1);
-			else return ""; //placeholder
+			else return "";
 		}
 	}
 
@@ -145,9 +147,60 @@ namespace _4_Tell.Utilities
 		public override string ToString() //format input params as an element of a JSON array
 		{
 			return "{\"id\":\"" + id
-							+ "\",\"purchases\":\"" + purchases + "\"}";
+							+ "\",\"purchases\":\"" + purchases 
+							+ "\"}";
 		}
+	}
 
+    // Dashboard | GET
+
+	[DataContract(Namespace = "")] //(Namespace="http://www.4-tell.net/Boost2.0/")]
+	[KnownType(typeof(DashAdmins))]
+	public class DashAdmins
+	{
+		[DataMember]
+		public string UserId { get; set; } 
+		[DataMember]
+		public int UserName { get; set; }
+		[DataMember]
+		public int UserEmail { get; set; }
+		[DataMember]
+		public int UserPassword { get; set; }  
+
+		public override string ToString() //format input params as an element of a JSON array
+		{
+			return "{\"UserId\":\"" + UserId
+							+ "\",\"UserName\":\"" + UserName
+							+ "\",\"UserEmail\":\"" + UserEmail
+							+ "\",\"UserPassword\":\"" + UserPassword
+							+ "\"}";
+		}
+	}
+
+	[DataContract(Namespace = "")] //(Namespace="http://www.4-tell.net/Boost2.0/")]
+	[KnownType(typeof(DashSites))]
+	public class DashSites
+	{
+		[DataMember]
+		public string SiteId { get; set; }
+		[DataMember]
+		public int SiteURL { get; set; }
+		[DataMember]
+		public int ClientAlias { get; set; }
+		[DataMember]
+		public int RoleId { get; set; }
+		[DataMember]
+		public int RoleName { get; set; }
+
+		public override string ToString() //format input params as an element of a JSON array
+		{
+			return "{\"SiteId\":\"" + SiteId
+							+ "\",\"SiteURL\":\"" + SiteURL
+							+ "\",\"ClientAlias\":\"" + ClientAlias
+							+ "\",\"RoleId\":\"" + RoleId
+							+ "\",\"RoleName\":\"" + RoleName
+							+ "\"}";
+		}
 	}
 
 }

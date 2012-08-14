@@ -1,17 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Linq;
-using System.Text;
 using System.IO;
-using System.Configuration;
-//using System.Windows.Forms;
 using _4_Tell.Utilities;
 
 namespace _4_Tell.IO
 {
 	#region Global Structures
-	public enum recType : byte
+	public enum RecType
 	{
 		// Higher numbers have higher priority
 		//note, when adding to this list, keep in mind that the order matters. 
@@ -28,10 +23,12 @@ namespace _4_Tell.IO
 		SimilarRelatedItems, //= 9
 		ClickStream2ClickStream, // = 10
 		ClickStream2Buy, // = 11
-		CrossSellGenomicAtt2, // = 12
-		CrossSellGenomicAtt1, // = 13
-		CrossSellGenomic, // = 14
-		CrossSellAction2Action // = 15
+		SimilarManual, // = 12
+		CrossSellGenomicAtt2, // = 13
+		CrossSellGenomicAtt1, // = 14
+		CrossSellGenomic, // = 15
+		CrossSellAction2Action, // = 16
+		CrossSellManual // = 17
 	}
 
 	public struct Rec // Recommendation structure
@@ -40,6 +37,14 @@ namespace _4_Tell.IO
 		public float likelihood;
 		public int numCommon;
 		public byte type;
+
+		public void Reset()
+		{
+			alphaID = "0";
+			likelihood = -1;
+			numCommon = 0;
+			type = 0;
+		}
 
 		public void Copy(Rec newRec)
 		{
@@ -62,6 +67,13 @@ namespace _4_Tell.IO
 		public string alphaID;
 		public int numActions;
 		public byte type;
+
+		public void Reset()
+		{
+			alphaID = "0";
+			numActions = -1;
+			type = 0;
+		}
 
 		public Rec ToRec()
 		{
@@ -226,6 +238,7 @@ namespace _4_Tell.IO
 		// Misc
 		char[] m_tabSeparator = new char[] { '\t' };
 		const string m_newestVersion = "3.1";
+		public static string Version { get { return m_newestVersion; } }
 
 		// Error Members and Properties//
 		int m_error;
@@ -402,11 +415,11 @@ namespace _4_Tell.IO
 		}
 
 		// CrossSellAtt1IDs
-		private string m_crossSellAtt1IDs = "";
+		private string m_crossAtt1IDs = "";
 		public string CrossSellAtt1IDs
 		{
-			set { m_crossSellAtt1IDs = value; }
-			get { return m_crossSellAtt1IDs; }
+			set { m_crossAtt1IDs = value; }
+			get { return m_crossAtt1IDs; }
 		}
 
 		// DoNotRecommendExists
@@ -613,7 +626,13 @@ namespace _4_Tell.IO
 			NoRules,
 			Filter,
 			Upsell,
-			CrossSell
+			CrossAtt1,
+			Resell,
+			Exclusions,
+			Replacements,
+			Promotions,
+			ManualCrossSell,
+			ManualUpsell
 		};
 
 		enum eConfigTags : byte
@@ -641,7 +660,7 @@ namespace _4_Tell.IO
 			FilterFilename,
 			UniversalFilterIDs,
 			UpsellFactor,
-			CrossSellAtt1IDs
+			CrossAtt1IDs
 		};
 		
 		string[] configTags = 
@@ -669,7 +688,7 @@ namespace _4_Tell.IO
 			"FilterFilename",
 			"UniversalFilterIDs",
 			"UpsellFactor",
-			"CrossSellAtt1IDs",
+			"CrossAtt1IDs",
 		};
 
 		public string ConfigFilename
@@ -709,16 +728,21 @@ namespace _4_Tell.IO
 				if (inputLine == null)
 				{
 					m_errorText = String.Format("The first line of {0} should be Version <tab> <versionNum>.", ConfigBasename);
+					m_configFile.Close();
 					return 1;
 				}
 				string[] tempSplit = inputLine.Split(m_tabSeparator);
 				if (tempSplit.Length < 2 || !tempSplit[0].Equals("version", StringComparison.CurrentCultureIgnoreCase))
 				{
 					m_errorText = String.Format("The first line of {0} should be Version <tab> <versionNum>.", ConfigBasename);
+					m_configFile.Close();
 					return 1;
 				}
 				if (!GetVersion(tempSplit[1], out m_configVersion, m_newestVersion, ConfigBasename))
+				{
+					m_configFile.Close();
 					return 1;
+				}
 				// Close file
 				m_configFile.Close();
 			}
@@ -737,17 +761,20 @@ namespace _4_Tell.IO
 
 			// Read ConfigBoostDefault
 			m_error = ReadKeywordFile(ConfigDefaultBasename, configTags, ref tagValues);
-			if (m_error != 0) return m_error;
+			if (m_error != 0) 
+				return m_error;
 
 			// Read ConfigBoost
 			// This is that automated export
 			m_error = ReadKeywordFile(ConfigBasename, configTags, ref tagValues);
-			if (m_error != 0) return m_error;
+			if (m_error != 0) 
+				return m_error;
 
 			// Read ConfigBoostOverride
 			// This is second so OVERWRITES previous configTags
 			m_error = ReadKeywordFile(ConfigOverrideBasename, configTags, ref tagValues);
-			if (m_error != 0) return m_error;
+			if (m_error != 0) 
+				return m_error;
 
 			// Assign values //
 			// version already set = values[0];
@@ -852,7 +879,8 @@ namespace _4_Tell.IO
 			try
 			{
 				// RulesEnabled takes precedence
-				m_rulesEnabled = (RulesTypes)Enum.Parse(typeof(RulesTypes), tagValues[(int)eConfigTags.RulesTypes], true);
+				if (tagValues[(int)eConfigTags.RulesTypes] != "")
+					m_rulesEnabled = (RulesTypes)Enum.Parse(typeof(RulesTypes), tagValues[(int)eConfigTags.RulesTypes], true);
 				m_rulesEnabled = (RulesTypes)Enum.Parse(typeof(RulesTypes), tagValues[(int)eConfigTags.RulesEnabled], true);
 				if (m_rulesEnabled != RulesTypes.NoRules)
 					m_rulesExist = true;
@@ -875,8 +903,8 @@ namespace _4_Tell.IO
 			if (!ConvertToFloat(ref m_upsellFactor, tagValues[(int)eConfigTags.UpsellFactor], configTags[(int)eConfigTags.UpsellFactor], (int)eConfigTags.UpsellFactor))
 				m_upsellFactor = 0.2F;
 
-			// CrossSellAtt1IDs
-			m_crossSellAtt1IDs = tagValues[(int)eConfigTags.CrossSellAtt1IDs];
+			// CrossAtt1IDs
+			m_crossAtt1IDs = tagValues[(int)eConfigTags.CrossAtt1IDs];
 
 			return 0;
 		}
@@ -893,6 +921,7 @@ namespace _4_Tell.IO
 		enum eRecStatsTags : byte
 		{
 			NumItems,
+			NumExclusions,
 			NumUsers,
 			NumAtt1s,
 			NumAtt2s,
@@ -916,6 +945,7 @@ namespace _4_Tell.IO
 		string[] recStatsTags = 
 		{ 
 			"NumItems",
+			"NumExclusions",
 			"NumUsers",
 			"NumAtt1s",
 			"NumAtt2s",
@@ -956,6 +986,14 @@ namespace _4_Tell.IO
 		{
 			set { m_numItems = value; }
 			get { return m_numItems; }
+		}
+
+		// NumExclusions
+		int m_numExclusions = -1;
+		public int NumExclusions
+		{
+			set { m_numExclusions = value; }
+			get { return m_numExclusions; }
 		}
 
 		// NumUsers
@@ -1170,6 +1208,14 @@ namespace _4_Tell.IO
 				return 1;
 			}
 
+			// NumExclusions
+			found = ConvertToInt(ref m_numExclusions, tagValues[(int)eRecStatsTags.NumExclusions],
+									recStatsTags[(int)eRecStatsTags.NumExclusions], (int)eRecStatsTags.NumExclusions);
+			if (!found)
+			{
+				m_errorText += String.Format("NumExclusions is not found in {0}.\n", RecStatsBasename);
+			}
+
 			// NumUsers
 			found = ConvertToInt(ref m_numUsers, tagValues[(int)eRecStatsTags.NumUsers],
 									recStatsTags[(int)eRecStatsTags.NumUsers], (int)eRecStatsTags.NumUsers);
@@ -1339,15 +1385,27 @@ namespace _4_Tell.IO
 		// Load SimilarItems ///////
 		public int ReadSimilarItems()
 		{
+			m_warning = 0;
 			// Version
-			m_similarItemsFilename = SimilarItemsBasename;
-			if (!File.Exists(m_clientDataPath + SimilarItemsBasename))
+			DateTime dt, dtV2;
+			if (File.Exists(m_clientDataPath + SimilarItemsBasename))
+				dt = File.GetLastWriteTime(m_clientDataPath + SimilarItemsBasename);
+			else
+				dt = new DateTime(0);
+			if (File.Exists(m_clientDataPath + SimilarItemsBasenameV2))
+				dtV2 = File.GetLastWriteTime(m_clientDataPath + SimilarItemsBasenameV2);
+			else
+				dtV2 = new DateTime(0);
+			if (dt >= dtV2)
+				m_similarItemsFilename = SimilarItemsBasename;
+			else
 				m_similarItemsFilename = SimilarItemsBasenameV2;
 
 			// Read Recommendations Header /////
 			// m_nNumItems and m_nNumSimilarItemRecs are read from the header
 			m_error = InitSimilarItemsFile();
-			if (m_error != 0) return m_error;
+			if (m_error != 0) 
+				return m_error;
 
 			// Allocate Arrays //////
 			// SimilarItems **
@@ -1368,7 +1426,16 @@ namespace _4_Tell.IO
 			else
 				m_error = FinishSimilarItemsFileOLD(); // Reads cross sell items and closes file
 
-			if (m_error != 0) return 1;
+			// If any items are missing - should not happen 
+			for (int i = 0; i < m_numItems; i++)
+			{
+				if (m_similarItems[i, 0].alphaID == null)
+					for (int j = 0; j < NumRecs; j++)
+						m_similarItems[i, j].Reset();
+			}
+
+			if (m_error != 0) 
+				return 1;
 
 			return 0;
 		}
@@ -1397,8 +1464,7 @@ namespace _4_Tell.IO
 			// == Read Header ==
 			// Version
 			temp = m_similarItemsFile.ReadLine();
-			if (!temp.ToLower().StartsWith("version") && 
-					!temp.ToLower().Contains("similar"))
+			if (!temp.ToLower().StartsWith("version"))
 			{
 				m_errorText = String.Format("Wrong version in {0}.",
 						m_similarItemsFilename);
@@ -1487,7 +1553,6 @@ namespace _4_Tell.IO
 			string itemID;
 			int itemIndex;
 			bool isNew = false;
-			byte trainingType;
 
 			// == Read Similar Items ==
 			for (i = 0; i < m_numItems; i++)
@@ -1495,9 +1560,11 @@ namespace _4_Tell.IO
 				temp = m_similarItemsFile.ReadLine();
 				if (temp == null)
 				{
-					m_errorText = String.Format("Reached EOF of Similar Items {0}.\n", m_similarItemsFilename);
-					m_similarItemsFile.Close();
-					return 1;
+					// Graceful Degregation - still works even with no data
+					m_warning = 1;
+					m_warningText = String.Format("Reached EOF of Similar Items {0}. {1} items in Similar, and {2} in RecStats. " +
+					"Program will continue with fewer items.\n", m_similarItemsFilename, i, m_numItems);
+					break;
 				} // EOF
 
 				tempSplit = temp.Split(m_tabSeparator);
@@ -1514,19 +1581,7 @@ namespace _4_Tell.IO
 					m_similarItems[itemIndex, j].alphaID = tempSplit[4 * j + 1];
 					m_similarItems[itemIndex, j].likelihood = (float) Convert.ToDouble(tempSplit[4 * j + 2]);
 					m_similarItems[itemIndex, j].numCommon = Convert.ToInt32(tempSplit[4 * j + 3]);
-					trainingType = Convert.ToByte(tempSplit[4 * j + 4]);
-					if (trainingType == 5)
-						m_similarItems[itemIndex, j].type = (byte)recType.ClickStream2Buy;
-					else if (trainingType == 4)
-						m_similarItems[itemIndex, j].type = (byte)recType.ClickStream2ClickStream;
-					else if (trainingType == 3)
-						m_similarItems[itemIndex, j].type = (byte) recType.SimilarAttMatch;
-					else if (trainingType == 2)
-						m_similarItems[itemIndex, j].type = (byte) recType.SimilarAttPartialMatch;
-					else if (trainingType == 1)
-						m_similarItems[itemIndex, j].type = (byte)recType.SimilarNonUpsell;
-					else
-						m_similarItems[itemIndex, j].type = (byte)recType.NoRec;
+					m_similarItems[itemIndex, j].type = (byte) Convert.ToInt32(tempSplit[4 * j + 4]);
 				} // for j nNumSimilarItemRecs
 			} // for i m_nNumItems
 
@@ -1614,6 +1669,7 @@ namespace _4_Tell.IO
 		// Load Cross Sell Items ///////
 		public int ReadCrossSellItems()
 		{
+			m_warning = 0;
 			// Read Recommendations Header /////
 			// m_nNumItems and m_nNumCrossSellItemRecs are read from the header
 			m_error = InitCrossSellItemsFile();
@@ -1635,6 +1691,14 @@ namespace _4_Tell.IO
 			// Read Cross Sell Items ////
 			m_error = FinishCrossSellItemsFile(); // Reads cross sell items and closes file
 			if (m_error != 0) return 1;
+
+			// If any items are missing - should not happen 
+			for (int i = 0; i < m_numItems; i++)
+			{
+				if (m_crossSellItems[i, 0].alphaID == null)
+					for (int j = 0; j < NumRecs; j++)
+						m_crossSellItems[i, j].Reset();
+			}
 
 			return 0;
 		}
@@ -1662,8 +1726,7 @@ namespace _4_Tell.IO
 			// == Read Header ==
 			// Version
 			temp = m_crossSellItemsFile.ReadLine();
-			if ( !temp.ToLower().StartsWith("version") &&
-					 !temp.Contains("crosssell") )
+			if ( !temp.ToLower().StartsWith("version") )
 			{
 				m_errorText = String.Format("Wrong version in {0}.",
 						m_crossSellItemsFilename);
@@ -1767,10 +1830,13 @@ namespace _4_Tell.IO
 				temp = m_crossSellItemsFile.ReadLine();
 				if (temp == null)
 				{
-					m_errorText = String.Format("Reached EOF of Cross Sell Items {0}.\n", m_crossSellItemsFilename);
-					m_crossSellItemsFile.Close();
-					return 1;
+					// Graceful Degregation - still works even if no data
+					m_warning = 1;
+					m_warningText = String.Format("Reached EOF of CrossSell Items {0}. {1} items in CrossSell, and {2} in RecStats. " +
+					"Program will continue with fewer items.\n", m_crossSellItemsFilename, i, m_numItems);
+					break;
 				} // EOF
+
 				tempSplit = temp.Split(m_tabSeparator);
 
 				// Read ItemID
@@ -1792,17 +1858,17 @@ namespace _4_Tell.IO
 				 // Factor of 3 since 3 items per rec
 				for (j = 0; j < m_numRecs; j++)
 				{
-					m_crossSellItems[i, j].alphaID = tempSplit[m_numHeadersPerRec * j + pos];
-					m_crossSellItems[i, j].likelihood = Convert.ToSingle(tempSplit[m_numHeadersPerRec * j + pos + 1]);
-					m_crossSellItems[i, j].numCommon = Convert.ToInt32(tempSplit[m_numHeadersPerRec * j + pos + 2]);
+					m_crossSellItems[itemIndex, j].alphaID = tempSplit[m_numHeadersPerRec * j + pos];
+					m_crossSellItems[itemIndex, j].likelihood = Convert.ToSingle(tempSplit[m_numHeadersPerRec * j + pos + 1]);
+					m_crossSellItems[itemIndex, j].numCommon = Convert.ToInt32(tempSplit[m_numHeadersPerRec * j + pos + 2]);
 					if (m_numHeadersPerRec == 4) // Means includes type - can be removed later
-						m_crossSellItems[i, j].type = Convert.ToByte(tempSplit[m_numHeadersPerRec * j + pos + 3]);
+						m_crossSellItems[itemIndex, j].type = Convert.ToByte(tempSplit[m_numHeadersPerRec * j + pos + 3]);
 					else
 					{
-						if (m_crossSellItems[i, j].numCommon > 0)
-							m_crossSellItems[i, j].type = (byte)recType.CrossSellAction2Action;
+						if (m_crossSellItems[itemIndex, j].numCommon > 0)
+							m_crossSellItems[itemIndex, j].type = (byte)RecType.CrossSellAction2Action;
 						else
-							m_crossSellItems[i, j].type = (byte)recType.CrossSellGenomic;
+							m_crossSellItems[itemIndex, j].type = (byte)RecType.CrossSellGenomic;
 					} // type not included
 				} // for j nNumCrossSellItemRecs
 			} // for i m_nNumItems
@@ -1838,6 +1904,7 @@ namespace _4_Tell.IO
 		 // Genomic CrossSell included in CrossSellItems. CrossSellAttItems does not exist!!!
 		public int ReadCrossSellAttItems()
 		{
+			m_warning = 0;
 			// Read Recommendations Header /////
 			// m_nNumItems and m_nNumCrossSellItemRecs are read from the header
 			m_error = InitCrossSellAttItemsFile();
@@ -1997,7 +2064,7 @@ namespace _4_Tell.IO
 					m_crossSellAttItems[i, j].alphaID = tempSplit[2 * j + 1];
 					m_crossSellAttItems[i, j].likelihood = Convert.ToSingle(tempSplit[2 * j + 2]);
 					m_crossSellAttItems[i, j].numCommon = 0; // 0
-					m_crossSellAttItems[i, j].type = (byte) recType.CrossSellGenomic;
+					m_crossSellAttItems[i, j].type = (byte) RecType.CrossSellGenomic;
 				} // for j nNumCrossSellItemRecs
 			} // for i m_nNumItems
 
@@ -2075,6 +2142,7 @@ namespace _4_Tell.IO
 		// ItemDetails ////////////
 		public int ReadItemDetails()
 		{
+			m_warning = 0;
 			// Init to set m_numItems
 			m_error = InitItemDetails();
 			if (m_error != 0)
@@ -2106,6 +2174,13 @@ namespace _4_Tell.IO
 				m_error = ReadItemDetailsFileV1();
 			if (m_error != 0)
 				return m_error;
+
+			// If any items are missing - should not happen 
+			for (int i = 0; i < m_numItems; i++)
+			{
+				if (m_itemDetails[i].itemID == null)
+					m_itemDetails[i].Reset();
+			}
 
 			return 0;
 		}
@@ -2383,9 +2458,11 @@ namespace _4_Tell.IO
 				temp = m_itemDetailsFile.ReadLine();
 				if (temp == null)
 				{
-				  m_errorText = String.Format("Reached EOF of Item Name {0}.\n", m_itemDetailsFilename);
-				  m_itemDetailsFile.Close();
-				  return 1;
+					// Graceful Degregation
+					m_warning = 1;
+					m_warningText = String.Format("Reached EOF of ItemDetails {0}. {1} items in ItemDetails, and {2} in RecStats. " +
+					"Program will continue with fewer items.\n", m_itemDetailsFilename, i, m_numItems);
+					break;
 				} // EOF
 
 				tempSplit = temp.Split(m_tabSeparator);
@@ -2609,8 +2686,11 @@ namespace _4_Tell.IO
 			}
 			item.productID = alphaID;
 			item.title = m_itemDetails[itemIndex].name;
-			item.price = m_currency + ((float)(m_itemDetails[itemIndex].price / 100f)).ToString("N2");
-			item.salePrice = m_currency + ((float)(m_itemDetails[itemIndex].salePrice / 100f)).ToString("N2");
+			float price = (float)(m_itemDetails[itemIndex].price / 100f);
+			item.price = m_currency + price.ToString("N2"); //TODO: currency formatting should be left to the client
+			float salePrice = (float)(m_itemDetails[itemIndex].salePrice / 100f);
+			if (salePrice > 0 && salePrice < price)
+				item.salePrice = m_currency + salePrice.ToString("N2"); //TODO: currency formatting should be left to the client
 			item.rating = m_itemDetails[itemIndex].rating;
 			//TODO: Update all site javascript to allow this value to be "NoEntry"
 			if (item.rating.Equals("noentry", StringComparison.CurrentCultureIgnoreCase))
@@ -2655,6 +2735,10 @@ namespace _4_Tell.IO
 
 		private string GetFilterNames(int index)
 		{
+			if ((index < 0) || (index > m_itemDetails.Length)
+					|| (m_itemDetails[index].filter1IDs == null)) 
+				return "";
+
 			string filters = "";
 			bool first = true;
 			foreach (string id in m_itemDetails[index].filter1IDs)
@@ -2809,6 +2893,9 @@ namespace _4_Tell.IO
 				//	itemName = itemName.Remove(itemName.Length - 6, 6);
 				//}
 
+				if (m_itemDetails[i].itemID == "")
+					continue;
+
 				if (Att1Exists)
 				{
 					att1Index = m_att1Index.GetIndex(m_itemDetails[i].att1IDs[0]);
@@ -2858,8 +2945,9 @@ namespace _4_Tell.IO
 		// Promotions ////////////////////////////////////////////////
 		// Promotions Members and Properties **
 		StreamReader m_promotionsFile = null;
+		StreamWriter m_promotionsFileOut = null;
 		string m_promotionsFilename = null;
-		const int NumPromotionsIndexes = 4;
+		public const int NumPromotionsIndexes = 4;
 		public enum Promotions
 		{
 			ProductID,
@@ -2870,12 +2958,7 @@ namespace _4_Tell.IO
 		string[] m_promotionsRecord = null;
 		List<string[]> m_promotions = null;
 
-		public string PromotionsFilename
-		{
-			set { m_promotionsFilename = value; }
-			get { return m_promotionsFilename; }
-		}
-
+		// Read Promotions ////////////////////////////////////////////////
 		public int ReadPromotions()
 		{
 			m_promotions = new List<string[]>();
@@ -2895,16 +2978,7 @@ namespace _4_Tell.IO
 			string[] tempSplit;
 
 			// Open file
-			// Determine name - first if set use it, if not try newest version
-			if (m_promotionsFilename != null)
-			{
-				int index = m_promotionsFilename.LastIndexOf('\\');
-				if (index > -1)
-					m_promotionsFilename = m_promotionsFilename.Remove(0, index + 1);
-			}
-			else
-				m_promotionsFilename = PromotionsBasename;
-
+			m_promotionsFilename = PromotionsBasename;
 			try
 			{
 				m_promotionsFile = new StreamReader(m_clientDataPath + m_promotionsFilename);
@@ -2934,9 +3008,11 @@ namespace _4_Tell.IO
 				// Keep creating new strings, otherwise list point to same place in memory
 				m_promotionsRecord = new string[NumPromotionsIndexes];
 				tempSplit = temp.Split(m_tabSeparator);
-				N = (NumPromotionsIndexes > tempSplit.Length ? NumPromotionsIndexes : tempSplit.Length);
+				N = (tempSplit.Length >= NumPromotionsIndexes ? NumPromotionsIndexes : tempSplit.Length);
 				for (i=0; i<N; i++)
 					m_promotionsRecord[i] = tempSplit[i];
+				for (i=N; i<NumPromotionsIndexes; i++)
+					m_promotionsRecord[i] = "";
 
 				itemIndex = m_itemIndex.GetIndex(m_promotionsRecord[0]);
 				if (itemIndex < 0)
@@ -2950,13 +3026,62 @@ namespace _4_Tell.IO
 			return 0;
 		}
 
+		public int DestroyPromotions()
+		{
+			m_promotions = new List<string[]>(); // I assume this empties the promotion list
+			return 0;
+		}
+
 		public int GetPromotionsLength()
 		{
 			return m_promotions.Count;
 		}
+
 		public string[] GetPromotionsRecord(int index)
 		{
 			return m_promotions[index];
+		}
+
+		// Write Promotions ////////////////////////////////////////////////
+		public int OpenPromotionsFileOut()
+		{
+			// Open file
+			m_promotionsFilename = PromotionsBasename;
+			try
+			{
+				m_promotionsFileOut = new StreamWriter(m_clientDataPath + m_promotionsFilename);
+			}
+			catch (Exception)
+			{
+				m_errorText = String.Format("\nError: Could not open promotions name file {0}.\n\n", m_promotionsFilename);
+				return 2;
+			}
+
+			// Write header
+			DateTime now = DateTime.Now;
+			m_promotionsFileOut.WriteLine("Version\t3.1\t{0}", now.ToString("dd-mm-yyyy"));
+			m_promotionsFileOut.WriteLine("ProductID\tLevel\tStartDate\tEndDate");
+
+			return 0;
+		}
+
+		public int WritePromotionsRecord(string[] record)
+		{
+
+			if (m_promotionsFileOut == null)
+				OpenPromotionsFileOut();
+
+			// Write Promotions Record
+			m_promotionsFileOut.WriteLine("{0}\t{1}\t{2}\t{3}", record[(int) Promotions.ProductID],
+					record[(int) Promotions.Level], record[(int) Promotions.StartDate], record[(int) Promotions.EndDate]);
+
+			return 0;
+		}
+
+		public int ClosePromotionsFileOut()
+		{
+			m_promotionsFileOut.Close();
+			return 1;
 		}
 		#endregion
 
@@ -3007,6 +3132,7 @@ namespace _4_Tell.IO
 		// Load PersonalizedItems ///////
 		public int ReadPersonalizedItems()
 		{
+			m_warning = 0;
 			// Read Recommendations Header /////
 			// m_nNumUsers and m_nNumPersonalizedItemRecs are read from the header
 			m_error = InitPersonalizedItemsFile();
@@ -3018,6 +3144,7 @@ namespace _4_Tell.IO
 			if (m_personalizedItems == null)
 			{
 				m_errorText = "Could not allocate memory for Up Sell Items.\n";
+				m_personalizedItemsFile.Close();
 				return 1;
 			}
 			// Number of actions by each user
@@ -3025,6 +3152,7 @@ namespace _4_Tell.IO
 			if (m_numUserActions == null)
 			{
 				m_errorText = "Could not allocate memory for Up Sell Actions.\n";
+				m_personalizedItemsFile.Close();
 				return 1;
 			}
 
@@ -3034,6 +3162,14 @@ namespace _4_Tell.IO
 			// Read Cross Sell Items ////
 			m_error = FinishPersonalizedItemsFile(); // Reads cross sell items and closes file
 			if (m_error != 0) return 1;
+
+			// If any items are missing - should not happen 
+			for (int i = 0; i < m_numUsers; i++)
+			{
+				if (m_personalizedItems[i, 0].alphaID == null)
+					for (int j = 0; j < NumRecs; j++)
+						m_personalizedItems[i, j].Reset();
+			}
 
 			return 0;
 		}
@@ -3063,8 +3199,7 @@ namespace _4_Tell.IO
 			// == Read Header ==
 			// Version
 			version = m_personalizedItemsFile.ReadLine();
-			if ( !version.ToLower().StartsWith("version") &&
-					 !version.ToLower().Contains("personalized") )
+			if ( !version.ToLower().StartsWith("version") )
 			{
 				m_errorText = String.Format("Wrong version in {0}.",
 						m_personalizedItemsFilename);
@@ -3152,10 +3287,14 @@ namespace _4_Tell.IO
 				temp = m_personalizedItemsFile.ReadLine();
 				if (temp == null)
 				{
-					m_errorText = String.Format("Reached EOF of Cross Sell Items {0}.\n", m_personalizedItemsFilename);
-					m_personalizedItemsFile.Close();
-					return 1;
+					// Graceful Degregation
+					m_numUsers = i;
+					m_warning = 1;
+					m_warningText = String.Format("Reached EOF of Personalized Items {0}. {1} items in Personalized, and {2} in RecStats. " +
+					"Program will continue with fewer items.\n", m_personalizedItemsFilename, i, m_numUsers);
+					break;
 				} // EOF
+				
 				tempSplit = temp.Split(m_tabSeparator);
 				// Read ItemID
 				strUserID = tempSplit[0];
@@ -3175,9 +3314,9 @@ namespace _4_Tell.IO
 					m_personalizedItems[i, j].likelihood = Convert.ToSingle(tempSplit[3 * j + 3]);
 					m_personalizedItems[i, j].numCommon = Convert.ToInt32(tempSplit[3 * j + 4]);
 					if (m_personalizedItems[i, j].numCommon > 0)
-						m_personalizedItems[i, j].type = (byte)recType.CrossSellAction2Action;
+						m_personalizedItems[i, j].type = (byte)RecType.CrossSellAction2Action;
 					else
-						m_personalizedItems[i, j].type = (byte)recType.CrossSellGenomic;
+						m_personalizedItems[i, j].type = (byte)RecType.CrossSellGenomic;
 				} // for j nNumPersonalizedItemRecs
 			} // for i m_nNumUsers
 
@@ -3257,6 +3396,7 @@ namespace _4_Tell.IO
 		// Load WhyItems ///////
 		public int ReadWhyItems()
 		{
+			m_warning = 0;
 			// Read Recommendations Header /////
 			// m_nNumUsers and m_nNumWhyItemRecs are read from the header
 			m_error = InitWhyItemsFile();
@@ -3268,6 +3408,7 @@ namespace _4_Tell.IO
 			if (m_whyItems == null)
 			{
 				m_errorText = "Could not allocate memory for Cross Sell Items.\n";
+				m_whyItemsFile.Close();
 				return 1;
 			}
 
@@ -3307,8 +3448,7 @@ namespace _4_Tell.IO
 			// == Read Header ==
 			// Version
 			version = m_whyItemsFile.ReadLine();
-			if ( !version.ToLower().StartsWith("version") &&
-					 !version.ToLower().Contains("why") )
+			if ( !version.ToLower().StartsWith("version") )
 			{
 				m_errorText = String.Format("Wrong version in {0}.",
 						m_whyItemsFilename);
@@ -3410,9 +3550,11 @@ namespace _4_Tell.IO
 				temp = m_whyItemsFile.ReadLine();
 				if (temp == null)
 				{
-					m_errorText = String.Format("Reached EOF of Cross Sell Items {0}.\n", m_whyItemsFilename);
-					m_whyItemsFile.Close();
-					return 1;
+					// Graceful Degregation
+					m_warning = 1;
+					m_warningText = String.Format("Reached EOF of Why Items {0}. {1} items in Why Items, and {2} in RecStats. " +
+					"Program will continue with fewer items.\n", m_whyItemsFilename, i, m_numUsers);
+					break;
 				} // EOF
 				tempSplit = temp.Split(m_tabSeparator);
 				// Read ItemID
@@ -3469,6 +3611,7 @@ namespace _4_Tell.IO
 		// Load Bundle Items ///////
 		public int ReadBundleItems()
 		{
+			m_warning = 0;
 			// Read Recommendations Header /////
 			// m_nNumItems and m_nNumBundleItemRecs are read from the header
 			m_error = InitBundleItemsFile();
@@ -3480,6 +3623,7 @@ namespace _4_Tell.IO
 			if (m_bundleItems == null)
 			{
 				m_errorText = "Could not allocate memory for Bundle Items.\n";
+				m_bundleItemsFile.Close();
 				return 1;
 			}
 
@@ -3515,8 +3659,7 @@ namespace _4_Tell.IO
 			// == Read Header ==
 			// Version
 			version = m_bundleItemsFile.ReadLine();
-			if ( !version.ToLower().StartsWith("version") &&
-					 !version.ToLower().Contains("bundle") )
+			if ( !version.ToLower().StartsWith("version") )
 			{
 				m_errorText = String.Format("Wrong version in {0}.",
 						m_bundleItemsFilename);
@@ -3563,9 +3706,12 @@ namespace _4_Tell.IO
 				temp = m_bundleItemsFile.ReadLine();
 				if (temp == null)
 				{
-					m_errorText = String.Format("Reached EOF of Bundle Items {0}.\n", m_bundleItemsFilename);
-					m_bundleItemsFile.Close();
-					return 1;
+					// Graceful Degregation
+					m_numBundleItems = i;
+					m_warning = 1;
+					m_warningText = String.Format("Reached EOF of Bundled Items {0}. {1} items in Bundled Itesm, and {2} in RecStats. " +
+					"Program will continue with fewer items.\n", m_bundleItemsFilename, i, m_numBundleItems);
+					break;
 				} // EOF
 
 				tempSplit = temp.Split(m_tabSeparator);
@@ -3614,6 +3760,7 @@ namespace _4_Tell.IO
 		// LoadSalesData Items ///////
 		public int ReadSalesData()
 		{
+			m_warning = 0;
 			// Read Recommendations Header /////
 			// m_nNumItems and m_nNumsalesDataItemRecs are read from the header
 			m_error = InitSalesDataFile();
@@ -3651,8 +3798,7 @@ namespace _4_Tell.IO
 			// == Read Header ==
 			// Version
 			version = m_salesDataFile.ReadLine();
-			if ( !version.ToLower().StartsWith("version") &&
-					 !version.ToLower().Contains("salesdata") )
+			if ( !version.ToLower().StartsWith("version") )
 			{
 				m_errorText = String.Format("Wrong version ({1}) in {0}.",
 						m_salesDataFilename, version);
@@ -3865,7 +4011,6 @@ namespace _4_Tell.IO
 					m_warning = 1;
 					m_warningText = String.Format("numUsers in SalesData ({0}) is not equal to the number of items ({1}) from the other files.\n" +
 					"Please try a different file.\n", Convert.ToInt32(tempSplit[1]), m_numUsers);
-					m_salesDataFile.Close();
 				}
 			}
 			else
@@ -4025,6 +4170,7 @@ namespace _4_Tell.IO
 		// Load Item Items ///////
 		public int ReadTopSellerItems()
 		{
+			m_warning = 0;
 			// Read Recommendations Header /////
 			m_error = InitTopSellerItemsFile();
 			if (m_error != 0) return m_error;
@@ -4035,6 +4181,7 @@ namespace _4_Tell.IO
 			if (m_topSellerItems == null)
 			{
 				m_errorText = "Could not allocate memory for Item Top Sellers.\n";
+				m_topSellerItemsFile.Close();
 				return 1;
 			}
 
@@ -4070,8 +4217,7 @@ namespace _4_Tell.IO
 			// == Read Header ==
 			// Version
 			version = m_topSellerItemsFile.ReadLine();
-			if ( !version.ToLower().StartsWith("version") &&
-					 !version.ToLower().Contains("topseller") )
+			if ( !version.ToLower().StartsWith("version") )
 			{
 				m_errorText = String.Format("Wrong version in {0}.",
 						m_topSellerItemsFilename);
@@ -4095,13 +4241,6 @@ namespace _4_Tell.IO
 					m_topSellerItemsFile.Close();
 					return 1;
 				}
-				//if (m_maxItemID != Convert.ToInt32(tempSplit[1]) )
-				//{
-				//  m_errorText = String.Format("Wrong maximum item ID in header for {0}.",
-				//      m_topSellerItemsFilename);
-				//  m_topSellerItemsFile.Close();
-				//  return 1;
-				//}
 
 				// NumItemTopSellerRecs
 				temp = m_topSellerItemsFile.ReadLine();
@@ -4136,16 +4275,19 @@ namespace _4_Tell.IO
 				temp = m_topSellerItemsFile.ReadLine();
 				if (temp == null)
 				{
-					m_errorText = String.Format("Reached EOF of Item Items {0}.\n", m_topSellerItemsFilename);
-					m_topSellerItemsFile.Close();
-					return 1;
+					// Graceful Degregation
+					m_numTopSellerItemsRecs = i;
+					m_warning = 1;
+					m_warningText = String.Format("Reached EOF of TopSeller Items {0}. {1} items in TopSellers, and {2} in RecStats. " +
+					"Program will continue with fewer items.\n", m_topSellerItemsFilename, i, m_numTopSellerItemsRecs);
+					break;
 				} // EOF
 
 				// Fill data
 				tempSplit = temp.Split(m_tabSeparator);
 				m_topSellerItems[i].alphaID = tempSplit[0];
 				m_topSellerItems[i].numActions = Convert.ToInt32(tempSplit[1]);
-				m_topSellerItems[i].type = (byte) recType.TopSeller;
+				m_topSellerItems[i].type = (byte) RecType.TopSeller;
 			} // for i m_nNumItemTopSellerRecs
 
 			// == Close File ==
@@ -4197,6 +4339,7 @@ namespace _4_Tell.IO
 		// Load Item Items ///////
 		public int ReadTopBuyerUsers()
 		{
+			m_warning = 0;
 			// Read Recommendations Header /////
 			m_error = InitTopBuyerUsersFile();
 			if (m_error != 0) return m_error;
@@ -4206,7 +4349,8 @@ namespace _4_Tell.IO
 			m_topBuyerUsers = new TopSellerRec[m_numTopBuyerUsersRecs];
 			if (m_topBuyerUsers == null)
 			{
-				m_errorText = "Could not allocate memory for Item Top Sellers.\n";
+				m_errorText = "Could not allocate memory for Top Buyers.\n";
+				m_topBuyerUsersFile.Close();
 				return 1;
 			}
 
@@ -4242,8 +4386,7 @@ namespace _4_Tell.IO
 			// == Read Header ==
 			// Version
 			version = m_topBuyerUsersFile.ReadLine();
-			if (!version.ToLower().StartsWith("version") &&
-					!version.ToLower().Contains("topbuyer") )
+			if (!version.ToLower().StartsWith("version") )
 			{
 				m_errorText = String.Format("Wrong version in {0}.",
 						m_topBuyerUsersFilename);
@@ -4308,16 +4451,19 @@ namespace _4_Tell.IO
 				temp = m_topBuyerUsersFile.ReadLine();
 				if (temp == null)
 				{
-					m_errorText = String.Format("Reached EOF of Item Items {0}.\n", m_topBuyerUsersFilename);
-					m_topBuyerUsersFile.Close();
-					return 1;
+					// Graceful Degregation
+					m_numTopBuyerUsersRecs = i;
+					m_warning = 1;
+					m_warningText = String.Format("Reached EOF of TopBuyer Items {0}. {1} items in TopBuyers, and {2} in RecStats. " +
+					"Program will continue with fewer items.\n", m_topBuyerUsersFilename, i, m_numTopBuyerUsersRecs);
+					break;
 				} // EOF
 
 				// Fill data
 				tempSplit = temp.Split(m_tabSeparator);
 				m_topBuyerUsers[i].alphaID = tempSplit[0];
 				m_topBuyerUsers[i].numActions = Convert.ToInt32(tempSplit[1]);
-				m_topBuyerUsers[i].type = (byte)recType.TopSeller;
+				m_topBuyerUsers[i].type = (byte)RecType.TopSeller;
 			} // for i m_nNumUserTopSellerRecs
 
 			// == Close File ==
@@ -4515,6 +4661,7 @@ namespace _4_Tell.IO
 		// must first call ReadCrossSellAtt1s since m_nNumAtt1s set there
 		public int ReadAtt1Names()
 		{
+			m_warning = 0;
 			// Att1Names =====================================
 			m_att1Names = new string[m_numAtt1s];
 			if (m_att1Names == null)
@@ -4659,6 +4806,7 @@ namespace _4_Tell.IO
 		// Load CrossSellAtt1s ///////
 		public int ReadCrossSellAtt1s()
 		{
+			m_warning = 0;
 			// Read Recommendations Header /////
 			// m_nNumAtt1s and m_nNumCrossSellAtt1Recs are read from the header
 			m_error = InitCrossSellAtt1File();
@@ -4670,6 +4818,7 @@ namespace _4_Tell.IO
 			if (m_crossSellAtt1s == null)
 			{
 				m_errorText = "Could not allocate memory for Cross Sell Attribute1's.\n";
+				m_crossSellAtt1File.Close();
 				return 1;
 			}
 			// Below is way more memory efficient, since only one per cat
@@ -4678,6 +4827,7 @@ namespace _4_Tell.IO
 			if (m_att1Headers == null)
 			{
 				m_errorText = "Could not allocate memory for Cross Sell Actions.\n";
+				m_crossSellAtt1File.Close();
 				return 1;
 			}
 
@@ -4688,6 +4838,14 @@ namespace _4_Tell.IO
 			// Read CrossSellAtt1s ////
 			m_error = FinishCrossSellAtt1File(); // Reads cross sell att1 and closes file
 			if (m_error != 0) return 1;
+
+			// If any items are missing - should not happen 
+			for (int i = 0; i < m_numAtt1s; i++)
+			{
+				if (m_crossSellAtt1s[i, 0].alphaID == null)
+					for (int j = 0; j < NumRecs; j++)
+						m_crossSellAtt1s[i, j].Reset();
+			}
 
 			return 0;
 		}
@@ -4717,8 +4875,7 @@ namespace _4_Tell.IO
 			// == Read Header ==
 			// Version
 			version = m_crossSellAtt1File.ReadLine();
-			if (!version.ToLower().StartsWith("version") &&
-					!version.ToLower().Contains("crosssellatt") )
+			if (!version.ToLower().StartsWith("version") )
 			{
 				m_errorText = String.Format("Wrong version in {0}.",
 						m_crossSellAtt1Filename);
@@ -4794,9 +4951,11 @@ namespace _4_Tell.IO
 				temp = m_crossSellAtt1File.ReadLine();
 				if (temp == null)
 				{
-					m_errorText = String.Format("Reached EOF of Cross Sell Attribute1's {0}.\n", m_crossSellAtt1Filename);
-					m_crossSellAtt1File.Close();
-					return 1;
+					// Graceful Degregation
+					m_warning = 1;
+					m_warningText = String.Format("Reached EOF of CrossSellAtt1 Items {0}. {1} items in CrossSellAtt1, and {2} in RecStats. " +
+					"Program will continue with fewer items.\n", m_crossSellAtt1Filename, i, m_numAtt1s);
+					break;
 				} // EOF
 				tempSplit = temp.Split(m_tabSeparator);
 				// Read Att1ID
@@ -4814,7 +4973,7 @@ namespace _4_Tell.IO
 					m_crossSellAtt1s[index, j].alphaID = tempSplit[3 * j + 3];
 					m_crossSellAtt1s[index, j].likelihood = Convert.ToSingle(tempSplit[3 * j + 4]);
 					m_crossSellAtt1s[index, j].numCommon = Convert.ToInt32(tempSplit[3 * j + 5]);
-					m_crossSellAtt1s[index, j].type = (byte)recType.CrossSellAttToAtt;
+					m_crossSellAtt1s[index, j].type = (byte)RecType.CrossSellAttToAtt;
 				} // for j nNumCrossSellAtt1Recs
 			} // for i m_nNumAtt1
 
@@ -4853,6 +5012,7 @@ namespace _4_Tell.IO
 		// Load Att1 Items ///////
 		public int ReadTopSellAtt1Items()
 		{
+			m_warning = 0;
 			// Read Recommendations Header /////
 			// m_nNumItems and m_nNumTopSellAtt1ItemRecs are read from the header
 			m_error = InitTopSellAtt1ItemsFile();
@@ -4864,6 +5024,7 @@ namespace _4_Tell.IO
 			if (m_topSellAtt1Items == null)
 			{
 				m_errorText = "Could not allocate memory for Top Sell Att1 Items.\n";
+				m_topSellAtt1ItemsFile.Close();
 				return 1;
 			}
 
@@ -4874,6 +5035,14 @@ namespace _4_Tell.IO
 			// Read Att1 Items ////
 			m_error = FinishTopSellAtt1ItemsFile(); // Reads cross sell items and closes file
 			if (m_error != 0) return 1;
+
+			// If any items are missing - should not happen 
+			for (int i = 0; i < m_numAtt1s; i++)
+			{
+				if (m_topSellAtt1Items[i, 0].alphaID == null)
+					for (int j = 0; j < NumRecs; j++) // Sames as m_numTopSellAtt1ItemRecs
+						m_topSellAtt1Items[i, j].Reset();
+			}
 
 			return 0;
 		}
@@ -4905,8 +5074,7 @@ namespace _4_Tell.IO
 			// == Read Header ==
 			// Version
 			version = m_topSellAtt1ItemsFile.ReadLine();
-			if (!version.ToLower().StartsWith("version") &&
-					!version.ToLower().Contains("topsellatt") )
+			if (!version.ToLower().StartsWith("version") )
 			{
 				m_errorText = String.Format("Wrong version in {0}.",
 						m_topSellAtt1ItemsFilename);
@@ -4994,9 +5162,11 @@ namespace _4_Tell.IO
 				temp = m_topSellAtt1ItemsFile.ReadLine();
 				if (temp == null)
 				{
-					m_errorText = String.Format("Reached EOF of Att1 Items {0}.\n", m_topSellAtt1ItemsFilename);
-					m_topSellAtt1ItemsFile.Close();
-					return 1;
+					// Graceful Degregation
+					m_warning = 1;
+					m_warningText = String.Format("Reached EOF of TopSellAtt1 Items {0}. {1} items in TopSellAtt1, and {2} in RecStats. " +
+					"Program will continue with fewer items.\n", m_topSellAtt1ItemsFilename, i, m_numAtt1s);
+					break;
 				} // EOF
 
 				tempSplit = temp.Split(m_tabSeparator);
@@ -5006,22 +5176,16 @@ namespace _4_Tell.IO
 					continue;
 
 				// Use att1Index to place in Header and Data arrays
-				// so match m_catName array
+				// so match m_att1Name array
 				// Different than TopSellerAtt1s, which includes att1ID since in order of numActions
 				m_att1Headers[att1Index].numItems = Convert.ToInt32(tempSplit[1]);
-				if (m_att1Headers[att1Index].numActions != Convert.ToInt32(tempSplit[2]))
-				{
-					m_errorText = String.Format("Number of actions for Att1 ID = {0} in {1} and{2} do not match.\n",
-							strAtt1ID, m_crossSellAtt1Filename, m_topSellAtt1ItemsFilename);
-					m_topSellAtt1ItemsFile.Close();
-					return 1;
-				}
+				m_att1Headers[att1Index].numActions = Convert.ToInt32(tempSplit[2]);
 
 				for (j = 0; j < m_numTopSellAtt1ItemRecs; j++)
 				{
 					m_topSellAtt1Items[att1Index, j].alphaID = tempSplit[2 * j + 3];
 					m_topSellAtt1Items[att1Index, j].numActions = Convert.ToInt32(tempSplit[2 * j + 4]);
-					m_topSellAtt1Items[att1Index, j].type = (byte)recType.TopSell;
+					m_topSellAtt1Items[att1Index, j].type = (byte)RecType.TopSell;
 				} // for j nNumTopSellAtt1ItemRecs
 			} // for i m_nNumAtt1s
 
@@ -5060,6 +5224,7 @@ namespace _4_Tell.IO
 		// Load Bundle Att1 ///////
 		public int ReadBundleAtt1s()
 		{
+			m_warning = 0;
 			// Read Recommendations Header /////
 			// m_nNumAtt1s and m_nNumBundleAtt1Recs are read from the header
 			m_error = InitBundleAtt1File();
@@ -5071,6 +5236,7 @@ namespace _4_Tell.IO
 			if (m_bundleAtt1s == null)
 			{
 				m_errorText = "Could not allocate memory for Bundle Att1s.\n";
+				m_bundleAtt1File.Close();
 				return 1;
 			}
 
@@ -5106,8 +5272,7 @@ namespace _4_Tell.IO
 			// == Read Header ==
 			// Version
 			version = m_bundleAtt1File.ReadLine();
-			if (!version.ToLower().StartsWith("version") &&
-					!version.ToLower().Contains("bundle") )
+			if (!version.ToLower().StartsWith("version") )
 			{
 				m_errorText = String.Format("Wrong version in {0}.",
 						m_bundleAtt1Filename);
@@ -5154,9 +5319,12 @@ namespace _4_Tell.IO
 				temp = m_bundleAtt1File.ReadLine();
 				if (temp == null)
 				{
-					m_errorText = String.Format("Reached EOF of Bundle Attribute1's {0}.\n", m_bundleAtt1Filename);
-					m_bundleAtt1File.Close();
-					return 1;
+					// Graceful Degregation
+					m_numBundleAtt1s = i;
+					m_warning = 1;
+					m_warningText = String.Format("Reached EOF of BundleAtt1 Items {0}. {1} items in BundleAtt1, and {2} in RecStats. " +
+					"Program will continue with fewer items.\n", m_bundleAtt1Filename, i, m_numBundleAtt1s);
+					break;
 				} // EOF
 
 				tempSplit = temp.Split(m_tabSeparator);
@@ -5205,6 +5373,7 @@ namespace _4_Tell.IO
 		// Load Att1 Items ///////
 		public int ReadTopSellerAtt1s()
 		{
+			m_warning = 0;
 			// Read Recommendations Header /////
 			// m_nNumItems and m_nNumTopSellerAtt1Recs are read from the header
 			m_error = InitTopSellerAtt1File();
@@ -5216,6 +5385,7 @@ namespace _4_Tell.IO
 			if (m_topSellerAtt1s == null)
 			{
 				m_errorText = "Could not allocate memory for Att1 Top Sellers.\n";
+				m_topSellerAtt1File.Close();
 				return 1;
 			}
 
@@ -5255,8 +5425,7 @@ namespace _4_Tell.IO
 			// == Read Header ==
 			// Version
 			version = m_topSellerAtt1File.ReadLine();
-			if (!version.ToLower().StartsWith("version") && 
-					!version.ToLower().Contains("topselleratt") )
+			if (!version.ToLower().StartsWith("version")  )
 			{
 				m_errorText = String.Format("Wrong version in {0}.",
 						m_topSellerAtt1Filename);
@@ -5322,9 +5491,12 @@ namespace _4_Tell.IO
 				temp = m_topSellerAtt1File.ReadLine();
 				if (temp == null)
 				{
-					m_errorText = String.Format("Reached EOF of Att1 Items {0}.\n", m_topSellerAtt1Filename);
-					m_topSellerAtt1File.Close();
-					return 1;
+					// Graceful Degregation
+					m_numTopSellerAtt1Recs = i;
+					m_warning = 1;
+					m_warningText = String.Format("Reached EOF of TopSellerAtt1 Items {0}. {1} items in TopSellerAtt1, and {2} in RecStats. " +
+					"Program will continue with fewer items.\n", m_topSellerAtt1Filename, i, m_numTopSellerAtt1Recs);
+					break;
 				} // EOF
 
 				// Fill data
@@ -5332,7 +5504,7 @@ namespace _4_Tell.IO
 				m_topSellerAtt1s[i].alphaID = tempSplit[0];
 				m_topSellerAtt1s[i].numItems = Convert.ToInt32(tempSplit[1]);
 				m_topSellerAtt1s[i].numActions = Convert.ToInt32(tempSplit[2]);
-				m_topSellerAtt1s[i].type = (byte)recType.TopSellerAtt;
+				m_topSellerAtt1s[i].type = (byte)RecType.TopSellerAtt;
 			} // for i m_nNumTopSellerAtt1Recs
 
 			// == Close File ==
@@ -5535,6 +5707,7 @@ namespace _4_Tell.IO
 		// Load Cross Sell Att2s ///////
 		public int ReadCrossSellAtt2s()
 		{
+			m_warning = 0;
 			// Read Recommendations Header /////
 			// m_nNumAtt2s and m_nNumCrossSellAtt2Recs are read from the header
 			m_error = InitCrossSellAtt2sFile();
@@ -5546,6 +5719,7 @@ namespace _4_Tell.IO
 			if (m_crossSellAtt2s == null)
 			{
 				m_errorText = "Could not allocate memory for Cross Sell Att2s.\n";
+				m_crossSellAtt2sFile.Close();
 				return 1;
 			}
 			// Below is way more memory efficient, since only one per att2
@@ -5554,6 +5728,7 @@ namespace _4_Tell.IO
 			if (m_att2Headers == null)
 			{
 				m_errorText = "Could not allocate memory for Cross Sell Att2 Headers.\n";
+				m_crossSellAtt2sFile.Close();
 				return 1;
 			}
 
@@ -5564,6 +5739,14 @@ namespace _4_Tell.IO
 			// Read Cross Sell Att2s ////
 			m_error = FinishCrossSellAtt2sFile(); // Reads cross sell att2s and closes file
 			if (m_error != 0) return 1;
+
+			// If any items are missing - should not happen 
+			for (int i = 0; i < m_numAtt2s; i++)
+			{
+				if (m_crossSellAtt2s[i, 0].alphaID == null)
+					for (int j = 0; j < NumRecs; j++)
+						m_crossSellAtt2s[i, j].Reset();
+			}
 
 			return 0;
 		}
@@ -5593,8 +5776,7 @@ namespace _4_Tell.IO
 			// == Read Header ==
 			// Version
 			version = m_crossSellAtt2sFile.ReadLine();
-			if (!version.ToLower().StartsWith("version") &&
-					!version.ToLower().Contains("crosssellatt") )
+			if (!version.ToLower().StartsWith("version") )
 			{
 				m_errorText = String.Format("Wrong version in {0}.",
 						m_crossSellAtt2sFilename);
@@ -5670,10 +5852,13 @@ namespace _4_Tell.IO
 				temp = m_crossSellAtt2sFile.ReadLine();
 				if (temp == null)
 				{
-					m_errorText = String.Format("Reached EOF of Cross Sell Att2s {0}.\n", m_crossSellAtt2sFilename);
-					m_crossSellAtt2sFile.Close();
-					return 1;
+					// Graceful Degregation
+					m_warning = 1;
+					m_warningText = String.Format("Reached EOF of CrossSellAtt2s {0}. {1} items in CrossSellAtt2s, and {2} in RecStats. " +
+					"Program will continue with fewer items.\n", m_crossSellAtt2sFilename, i, m_numAtt2s);
+					break;
 				} // EOF
+
 				tempSplit = temp.Split(m_tabSeparator);
 				// Read Att2ID
 				att2ID = tempSplit[0];
@@ -5690,7 +5875,7 @@ namespace _4_Tell.IO
 					m_crossSellAtt2s[index, j].alphaID = tempSplit[3 * j + 3];
 					m_crossSellAtt2s[index, j].likelihood = Convert.ToSingle(tempSplit[3 * j + 4]);
 					m_crossSellAtt2s[index, j].numCommon = Convert.ToInt32(tempSplit[3 * j + 5]);
-					m_crossSellAtt2s[index, j].type = (byte)recType.CrossSellAttToAtt;
+					m_crossSellAtt2s[index, j].type = (byte)RecType.CrossSellAttToAtt;
 				} // for j nNumCrossSellAtt2Recs
 			} // for i m_nNumAtt2s
 
@@ -5729,6 +5914,7 @@ namespace _4_Tell.IO
 		// Load Att2 Items ///////
 		public int ReadTopSellAtt2Items()
 		{
+			m_warning = 0;
 			// Read Recommendations Header /////
 			// m_nNumItems and m_nNumTopSellAtt2ItemRecs are read from the header
 			m_error = InitTopSellAtt2ItemsFile();
@@ -5740,6 +5926,7 @@ namespace _4_Tell.IO
 			if (m_topSellAtt2Items == null)
 			{
 				m_errorText = "Could not allocate memory for Att2 Items.\n";
+				m_topSellAtt2ItemsFile.Close();
 				return 1;
 			}
 
@@ -5750,6 +5937,14 @@ namespace _4_Tell.IO
 			// Read Att2 Items ////
 			m_error = FinishTopSellAtt2ItemsFile(); // Reads cross sell items and closes file
 			if (m_error != 0) return 1;
+
+			// If any items are missing - should not happen 
+			for (int i = 0; i < m_numAtt2s; i++)
+			{
+				if (m_topSellAtt2Items[i, 0].alphaID == null)
+					for (int j = 0; j < NumRecs; j++) // Sames as m_numTopSellAtt2ItemRecs
+						m_topSellAtt2Items[i, j].Reset();
+			}
 
 			return 0;
 		}
@@ -5781,8 +5976,7 @@ namespace _4_Tell.IO
 			// == Read Header ==
 			// Version
 			version = m_topSellAtt2ItemsFile.ReadLine();
-			if (!version.ToLower().StartsWith("version") &&
-					!version.ToLower().Contains("topsellatt") )
+			if (!version.ToLower().StartsWith("version") )
 			{
 				m_errorText = String.Format("Wrong version in {0}.",
 						m_topSellAtt2ItemsFilename);
@@ -5871,9 +6065,11 @@ namespace _4_Tell.IO
 				temp = m_topSellAtt2ItemsFile.ReadLine();
 				if (temp == null)
 				{
-					m_errorText = String.Format("Reached EOF of Att2 Items {0}.\n", m_topSellAtt2ItemsFilename);
-					m_topSellAtt2ItemsFile.Close();
-					return 1;
+					// Graceful Degregation
+					m_warning = 1;
+					m_warningText = String.Format("Reached EOF of TopSellAtt2 Items {0}. {1} items in TopSellAtt2, and {2} in RecStats. " +
+					"Program will continue with fewer items.\n", m_topSellAtt2ItemsFilename, i, m_numAtt2s);
+					break;
 				} // EOF
 
 				tempSplit = temp.Split(m_tabSeparator);
@@ -5886,19 +6082,13 @@ namespace _4_Tell.IO
 				// so match m_att2Name array
 				// Different than TopSellerAtt2s, which includes att2ID since in order of numActions
 				m_att2Headers[att2Index].numItems = Convert.ToInt32(tempSplit[1]);
-				if (m_att2Headers[att2Index].numActions != Convert.ToInt32(tempSplit[2]))
-				{
-					m_errorText = String.Format("Number of actions for att2 ID = {0} in {1} and{2} do not match.\n", 
-							strAtt2ID, m_crossSellAtt2sFilename, m_topSellAtt2ItemsFilename);
-					m_topSellAtt2ItemsFile.Close();
-					return 1;
-				}
+				m_att2Headers[att2Index].numActions = Convert.ToInt32(tempSplit[2]);
 
 				for (j = 0; j < m_numTopSellAtt2ItemRecs; j++)
 				{
 					m_topSellAtt2Items[att2Index, j].alphaID = tempSplit[2 * j + 3];
 					m_topSellAtt2Items[att2Index, j].numActions = Convert.ToInt32(tempSplit[2 * j + 4]);
-					m_topSellAtt2Items[att2Index, j].type = (byte)recType.TopSell;
+					m_topSellAtt2Items[att2Index, j].type = (byte)RecType.TopSell;
 				} // for j nNumTopSellAtt2ItemRecs
 			} // for i m_nNumAtt2s
 
@@ -5937,6 +6127,7 @@ namespace _4_Tell.IO
 		// Load Bundle Att2s ///////
 		public int ReadBundleAtt2s()
 		{
+			m_warning = 0;
 			// Read Recommendations Header /////
 			// m_nNumAtt2s and m_nNumBundleAtt2Recs are read from the header
 			m_error = InitBundleAtt2sFile();
@@ -5948,6 +6139,7 @@ namespace _4_Tell.IO
 			if (m_bundleAtt2s == null)
 			{
 				m_errorText = "Could not allocate memory for Bundle Att2s.\n";
+				m_bundleAtt2sFile.Close();
 				return 1;
 			}
 
@@ -5983,8 +6175,7 @@ namespace _4_Tell.IO
 			// == Read Header ==
 			// Version
 			version = m_bundleAtt2sFile.ReadLine();
-			if (!version.ToLower().StartsWith("version") &&
-					!version.ToLower().Contains("bundle") )
+			if (!version.ToLower().StartsWith("version") )
 			{
 				m_errorText = String.Format("Wrong version in {0}.",
 						m_bundleAtt2sFilename);
@@ -6031,9 +6222,12 @@ namespace _4_Tell.IO
 				temp = m_bundleAtt2sFile.ReadLine();
 				if (temp == null)
 				{
-					m_errorText = String.Format("Reached EOF of Bundle Att2s {0}.\n", m_bundleAtt2sFilename);
-					m_bundleAtt2sFile.Close();
-					return 1;
+					// Graceful Degregation
+					m_numBundleAtt2s = i;
+					m_warning = 1;
+					m_warningText = String.Format("Reached EOF of BundleAtt2s {0}. {1} items in BundleAtt2s, and {2} in RecStats. " +
+					"Program will continue with fewer items.\n", m_bundleAtt2sFilename, i, m_numBundleAtt2s);
+					break;
 				} // EOF
 
 				tempSplit = temp.Split(m_tabSeparator);
@@ -6082,6 +6276,7 @@ namespace _4_Tell.IO
 		// Load Att2 Items ///////
 		public int ReadTopSellerAtt2s()
 		{
+			m_warning = 0;
 			// Read Recommendations Header /////
 			// m_nNumItems and m_nNumTopSellerAtt2Recs are read from the header
 			m_error = InitTopSellerAtt2sFile();
@@ -6093,6 +6288,7 @@ namespace _4_Tell.IO
 			if (m_topSellerAtt2s == null)
 			{
 				m_errorText = "Could not allocate memory for Att2 Top Sellers.\n";
+				m_topSellerAtt2sFile.Close();
 				return 1;
 			}
 
@@ -6132,8 +6328,7 @@ namespace _4_Tell.IO
 			// == Read Header ==
 			// Version
 			version = m_topSellerAtt2sFile.ReadLine();
-			if (!version.ToLower().StartsWith("version") &&
-					!version.ToLower().Contains("topselleratt") )
+			if (!version.ToLower().StartsWith("version") )
 			{
 				m_errorText = String.Format("Wrong version in {0}.",
 						m_topSellerAtt2sFilename);
@@ -6199,9 +6394,12 @@ namespace _4_Tell.IO
 				temp = m_topSellerAtt2sFile.ReadLine();
 				if (temp == null)
 				{
-					m_errorText = String.Format("Reached EOF of Att2 Items {0}.\n", m_topSellerAtt2sFilename);
-					m_topSellerAtt2sFile.Close();
-					return 1;
+					// Graceful Degregation
+					m_numTopSellerAtt2Recs = i;
+					m_warning = 1;
+					m_warningText = String.Format("Reached EOF of TopSellerAtt2s {0}. {1} items in TopSellerAtt2s, and {2} in RecStats. " +
+					"Program will continue with fewer items.\n", m_topSellerAtt2sFilename, i, m_numTopSellerAtt2Recs);
+					break;
 				} // EOF
 
 				// Fill data
@@ -6209,7 +6407,7 @@ namespace _4_Tell.IO
 				m_topSellerAtt2s[i].alphaID = tempSplit[0];
 				m_topSellerAtt2s[i].numItems = Convert.ToInt32(tempSplit[1]);
 				m_topSellerAtt2s[i].numActions = Convert.ToInt32(tempSplit[2]);
-				m_topSellerAtt2s[i].type = (byte)recType.TopSellerAtt;
+				m_topSellerAtt2s[i].type = (byte)RecType.TopSellerAtt;
 			} // for i m_nNumTopSellerAtt2Recs
 
 			// == Close File ==

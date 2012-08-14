@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net;
-using System.Text;
-using System.Web;
 using System.Xml;
 using System.Xml.Linq;
 using System.Diagnostics; //EventlogEntryType
@@ -33,21 +29,21 @@ namespace _4_Tell
 		private List<ReplacementRecord> m_replacementList = null;
 
 
-		public XmlDocument GetXMLFromURL(string APIURL)
+		public XmlDocument GetXmlFromUrl(string apiUrl)
 		{
-			XmlDocument APIDoc = null;
+			XmlDocument apiDoc = null;
 			try
 			{
-				XmlTextReader reader = new XmlTextReader(APIURL);
-				APIDoc = new XmlDocument();
-				APIDoc.Load(reader);
+				var reader = new XmlTextReader(apiUrl);
+				apiDoc = new XmlDocument();
+				apiDoc.Load(reader);
 				reader.Close();
 			}
 			catch (Exception e)
 			{
 				throw new Exception("Error reading API URL", e);
 			}
-			return APIDoc;
+			return apiDoc;
 		}
 
 		//Volusion Catalog Notes:
@@ -58,7 +54,7 @@ namespace _4_Tell
 		//  This file is placed in the client upload folder on our server.
 		private void GetCatalogXml(String query = null)
     {
-			if ((query == null) || (query.Length < 1))
+			if (string.IsNullOrEmpty(query))
 				query = "EDI_Name=Generic\\all_products"; //generic catalog query
 
 			if ((m_catalogXml != null) && (query == m_lastCatalogQuery))
@@ -84,7 +80,6 @@ namespace _4_Tell
 			}
 			if (m_catalogXml == null)
 				throw new Exception("Unable to retrieve catalog");    
-			return;
     }
 
 		private XDocument QueryVolusionApi(string query)
@@ -96,11 +91,18 @@ namespace _4_Tell
 				&& (m_apiUserName.Length > 0)
 				&& (m_apiKey.Length > 0))
 			{
-				string serviceURI = string.Format("{0}?Login={1}&EncryptedPassword={2}&{3}",
+				string serviceUri = string.Format("{0}?Login={1}&EncryptedPassword={2}&{3}",
 																					m_webServicesBaseUrl, m_apiUserName, m_apiKey, query);
-				using (var xtr = new XmlTextReader(serviceURI))
+				try
 				{
-					result = XDocument.Load(xtr);
+					using (var xtr = new XmlTextReader(serviceUri))
+					{
+						result = XDocument.Load(xtr);
+					}
+				}
+				catch
+				{
+					return null;
 				}
 			}
 			return result;
@@ -136,7 +138,7 @@ namespace _4_Tell
 		  base.ParseSettings(settings);
 
 			m_dataPath = DataPath.Instance.ClientDataPath(ref m_alias) + "upload\\";
-			m_webServicesBaseUrl = m_storeLongUrl + "/net/WebService.aspx"; //Client.GetValue(settings, "webServicesBaseUrl");
+			m_webServicesBaseUrl = "http://" + m_storeShortUrl + "/net/WebService.aspx"; //Client.GetValue(settings, "webServicesBaseUrl");
 
 			//in case of a CDN, client settings will hold the CDN base path 
 			m_photoBaseUrl = Client.GetValue(settings, "photoBaseUrl");
@@ -198,9 +200,11 @@ namespace _4_Tell
 				extraFieldList = extraFieldList.Where(x => (m_catalogXml.First().Descendants().Where(
 														y => y.Name.LocalName.Equals(x, StringComparison.CurrentCultureIgnoreCase)
 														).DefaultIfEmpty(null).Single() == null)).ToList<string>();
-				extraFields += ",pe." + extraFieldList.Aggregate((w, j) => string.Format("{0},pe.{1}", w, j));
+				if (extraFieldList.Count > 0)
+					extraFields += ",pe." + extraFieldList.Aggregate((w, j) => string.Format("{0},pe.{1}", w, j));
 				//Note:	Currently assuming that all fields are in pe table --true so far
-				//A more robust solution would be to compile local lists of fields in each Volusion table and check against the lists
+				//An option would be to compile local lists of fields in each Volusion table and check against the lists
+				//but then we may have to adjust for different version of Volusion
 			}
 
 			//create new replacement list in case child items are found
@@ -217,10 +221,15 @@ namespace _4_Tell
 										SalePrice =  Client.GetValue(product, "SalePrice"),
 										Filter = string.Empty
                 };
-
+#if DEBUG
+				string[] testProducts = { "calerachard10-w", "varnerfoxglovechard10-w", "mountedenchardwolff08-w", "viticciobere2008-w" };
+				bool testFlag = false;
+				if (testProducts.Contains(p.ProductId))
+					testFlag = true;
+#endif
 				if (m_secondAttEnabled)
 					p.Att2Id = Client.GetValue(product, "ProductManufacturer");
-        p.Link = string.Format("{0}/ProductDetails.asp?ProductCode={1}", m_storeLongUrl, p.ProductId);
+				p.Link = string.Format("{0}/ProductDetails.asp?ProductCode={1}", "http://" + m_storeShortUrl, p.ProductId); //pdp link is never https
 				p.Rating =  Client.GetValue(product, "ProductPopularity");
 				p.StandardCode = Client.GetValue(product, "UPC_code");
 				if (p.StandardCode.Length < 1)
@@ -387,11 +396,11 @@ namespace _4_Tell
 			// check for any replacement rules
 			if (m_replacements != null)
 			{
-				if (m_replacements[0].Type != ReplacementCondition.repType.catalog) //individual item replacement
+				if (m_replacements[0].Type != ReplacementCondition.RepType.Catalog) //individual item replacement
 				{
 					foreach (ReplacementCondition rc in m_replacements)
 					{
-						if (rc.Type != ReplacementCondition.repType.item)
+						if (rc.Type != ReplacementCondition.RepType.Item)
 						{
 							m_log.WriteEntry("Invalid replacement condition: " + rc.ToString(), EventLogEntryType.Warning, m_alias);
 							continue;  //ignore any invalid entries 
@@ -456,7 +465,7 @@ namespace _4_Tell
 				categories.Add(new AttributeRecord
 											{
 												Id = id,
-												Name = category.Descendants().Where(x => x.Name.LocalName.Equals("CategoryName")).Select(x => x.Value.Replace(",", "")).DefaultIfEmpty("").Single()
+												Name = RemoveHtmlFormatting(category.Descendants().Where(x => x.Name.LocalName.Equals("CategoryName")).Select(x => x.Value.Replace(",", "")).DefaultIfEmpty("").Single())
 											});
 			}
 

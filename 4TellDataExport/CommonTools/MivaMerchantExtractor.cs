@@ -97,7 +97,7 @@ namespace _4_Tell
 			m_categoriesFilePath = m_dataPath + m_categoriesFileName;
       m_photoBaseUrl = Client.GetValue(settings, "photoBaseUrl");
 			if (m_photoBaseUrl.Length < 1)
-				m_photoBaseUrl = m_storeLongUrl + "/mm5/";
+				m_photoBaseUrl = "//" + m_storeShortUrl + "/mm5/";
     }
 
     private static IEnumerable<Dictionary<string, string>> LoadTabDelimitedFile(string path)
@@ -191,7 +191,7 @@ namespace _4_Tell
 					if (p.ImageLink.Length < 1)
 						p.ImageLink = Client.GetValue(product, "FullSizeImage");
 
-					p.Link = string.Format("{0}/product/{1}.html", m_storeLongUrl, p.ProductId);
+					p.Link = string.Format("{0}/product/{1}.html", "http://" + m_storeShortUrl, p.ProductId); //pdp link is never https
 					p.Rating = string.Empty;
 
 					//parse custom fields
@@ -252,7 +252,7 @@ namespace _4_Tell
 			return result;
 		}
 
-    public override void LogSalesOrder(string orderID)
+    public override void LogSalesOrder(string orderId)
     {
       throw new NotImplementedException();
     }
@@ -347,11 +347,11 @@ namespace _4_Tell
 				ProgressText += "Exporting...";
 
         var replacements = new List<ReplacementRecord>();
-        if (!m_replacements[0].Type.Equals(ReplacementCondition.repType.catalog))
+        if (!m_replacements[0].Type.Equals(ReplacementCondition.RepType.Catalog))
         {
             foreach (var rc in m_replacements)
             {
-                if (!rc.Type.Equals(ReplacementCondition.repType.item))
+                if (!rc.Type.Equals(ReplacementCondition.RepType.Item))
                 {
                     m_log.WriteEntry(string.Format("Invalid replacement condition: {0}", rc), EventLogEntryType.Warning, m_alias);
                     continue;

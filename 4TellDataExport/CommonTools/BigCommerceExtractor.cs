@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Text;
-using System.Web;
 using System.Xml.Linq;
 using _4_Tell.Utilities;
 using _4_Tell.IO;
@@ -14,10 +12,10 @@ namespace _4_Tell
 {
   public class BigCommerceExtractor : CartExtractor
   {
-		private string m_webServicesBaseUrl;
+		private readonly string m_webServicesBaseUrl;
 		private readonly string m_dataPath = string.Empty;
-		private readonly string m_orderDetailsFileName = "OrderHistory.xml";
-		private readonly Dictionary<string, IEnumerable<XElement>> _xml = new Dictionary<string, IEnumerable<XElement>>();
+  	private const string m_orderDetailsFileName = "OrderHistory.xml";
+  	private readonly Dictionary<string, IEnumerable<XElement>> _xml = new Dictionary<string, IEnumerable<XElement>>();
 
     public BigCommerceExtractor(string alias, XElement settings) : base(alias, settings)
     {
@@ -29,6 +27,8 @@ namespace _4_Tell
 
 		public IEnumerable<XElement> CallCartApi(string service, string tagName = null)
     {
+				//NOTE: Johnny wrote this to allow multiple methods to request the same data without hitting the serice each time
+				//			It strikes me that this could prevent future calls
         if (_xml.Keys.Contains(service))
             return _xml.Where(x => x.Key.Equals(service)).Select(x => x.Value).SingleOrDefault();
 
@@ -63,9 +63,8 @@ namespace _4_Tell
 				{
 					try
 					{
-						//var salesDoc = XDocument.Load(m_dataPath + m_orderDetailsFileName);
 						var salesDoc = XDocument.Load(m_dataPath + m_orderDetailsFileName);
-						if ((salesDoc != null) && (salesDoc.Root != null))
+						if (salesDoc.Root != null)
 							m_salesXml = salesDoc.Root.Elements("order");
 					}
 					catch (Exception ex)
@@ -82,41 +81,87 @@ namespace _4_Tell
 
     #region Overrides of CartExtractor
 
-    public override void LogSalesOrder(string orderID)
+    public override void LogSalesOrder(string orderId)
     {
-        throw new NotImplementedException();
+        //throw new NotImplementedException();
+
+			IEnumerable<XElement> ordersXml;
+			IEnumerable<XElement> productsXml;
+    	string oCustomer;
+			DateTime oDate;
+			try
+			{
+				ordersXml = CallCartApi(string.Format("orders/{0}", orderId), "orders");
+				if (ordersXml == null) return;
+				ordersXml = ordersXml.Elements("order");
+				if (ordersXml == null)
+					throw new ArgumentNullException();
+
+				productsXml = CallCartApi(string.Format("orders/{0}/products", orderId), "products");
+				if (productsXml == null) return;
+				productsXml = productsXml.Elements("product");
+				if (productsXml == null)
+					throw new ArgumentNullException();
+
+				var order = ordersXml.First();
+				oCustomer = Client.GetValue(order, "customer_id");
+				var dateVal = Client.GetValue(order, "order_date");
+				oDate = dateVal.Length < 1 ? DateTime.Now : DateTime.Parse(dateVal);
+			}
+			catch (Exception ex) 
+			{ 
+				//log error
+				return;
+			}
+
+    	int errors = 0;
+			foreach (var p in productsXml)
+			{
+				try
+				{
+					var oProduct = Client.GetValue(p, "product_id");
+					var q = Client.GetValue(p, "product_qty");
+					int oQuantity = Convert.ToInt32(q);
+
+					//upload to 4-Tell
+					UsageLog.Instance.LogSingleAction(m_alias, oProduct, oCustomer, oQuantity, oDate);
+				}
+				catch { errors++; }
+			}
     }
 
     protected override string GetCatalog()
     {
-        var stopWatch = new StopWatch(true);
-        var products = new List<ProductRecord>();
+      var stopWatch = new StopWatch(true);
+      var products = new List<ProductRecord>();
 
-				//get product count
-				var countXml = CallCartApi("products/count", "products");
-				var countVal = countXml.Elements("count").First().Value;
-				int pRows = Convert.ToInt16(countVal);
+			//get product count
+			var countXml = CallCartApi("products/count", "products");
+			var countVal = countXml.Elements("count").First().Value;
+			int pRows = Convert.ToInt16(countVal);
 
-				//setup progress display
-        var result = string.Format("{0}{1}: ({2} items) ", Environment.NewLine, CatalogFilename, countVal);
-        ProgressText += result + "Extracting...";
-				string tempDisplay = ProgressText;
+			//setup progress display
+      var result = string.Format("{0}{1}: ({2} items) ", Environment.NewLine, CatalogFilename, countVal);
+      ProgressText += result + "Extracting...";
+			string tempDisplay = ProgressText;
 
 
-				//first get all the images because there can be many images for each product so record pages are not aligned
-				countXml = CallCartApi("products/images/count", "images");
-				countVal = countXml.Elements("count").First().Value;
-				int iRows = Convert.ToInt16(countVal);
-				int pages = (int)Math.Ceiling( (decimal)iRows / (decimal)250 ); //can only get 250 products at a time		
-				List<XElement> imagesXml = new List<XElement>(); //this will hold all images for entire catalog
-				for (int page = 1; page <= pages; page++)
-				{
-					string paging = string.Format("?page={0}&limit=250", page);
-					var pageXml = CallCartApi("products/images" + paging, "images");
-					if (pageXml == null)
-						break;
-					imagesXml.AddRange(pageXml.Elements("image"));
-				}
+			//first get all the images because there can be many images for each product so record pages are not aligned
+			countXml = CallCartApi("products/images/count", "images");
+			countVal = countXml.Elements("count").First().Value;
+			int iRows = Convert.ToInt16(countVal);
+			int pages = (int)Math.Ceiling( (decimal)iRows / (decimal)250 ); //can only get 250 products at a time		
+			var imagesXml = new List<XElement>(); //this will hold all images for entire catalog
+			for (int page = 1; page <= pages; page++)
+			{
+				string paging = string.Format("?page={0}&limit=250", page);
+				var pageXml = CallCartApi("products/images" + paging, "images");
+				if (pageXml == null)
+					break;
+				imagesXml.AddRange(pageXml.Elements("image"));
+				ProgressText = string.Format("{1}{0}{2} Images ({3})", Environment.NewLine, tempDisplay, imagesXml.Count, stopWatch.Lap());
+			}
+    	tempDisplay = ProgressText;
 #if DEBUG
 				if (imagesXml.Count() != iRows)
 				{
@@ -126,83 +171,130 @@ namespace _4_Tell
 				}
 #endif
 
-				//now get each page of products
-				pages = (int)Math.Ceiling((decimal)pRows / (decimal)250); //can only get 250 products at a time										
-				IEnumerable<XElement> productsXml = null; //this will only hold a single page of products
-				int errors = 0; pRows = 0;
-				for (int page = 1; page <= pages; page++)
-					{
-					string paging = string.Format("?page={0}&limit=250", page);
-					productsXml = CallCartApi("products" + paging, "products");
-					if (productsXml == null)
-					{
-						errors++; //not necessarily an error
-						break;
-					}
+			//Next get all the custom fields so we don't have to make a separate call for each product
+			countXml = CallCartApi("products/customfields/count", "customfields");
+			countVal = countXml.Elements("count").First().Value;
+			iRows = Convert.ToInt16(countVal);
+			pages = (int)Math.Ceiling((decimal)iRows / (decimal)250); //can only get 250 products at a time		
+			var customFieldXml = new List<XElement>(); //this will hold all images for entire catalog
+			for (int page = 1; page <= pages; page++)
+			{
+				string paging = string.Format("?page={0}&limit=250", page);
+				var pageXml = CallCartApi("products/customfields" + paging, "customfields");
+				if (pageXml == null)
+					break;
+				customFieldXml.AddRange(pageXml.Elements("customfield"));
+				ProgressText = string.Format("{1}{0}{2} Custom Fields ({3})", Environment.NewLine, tempDisplay, customFieldXml.Count, stopWatch.Lap());
+			}
+			tempDisplay = ProgressText;
 
-					var productElements = productsXml.Elements("product");
-					foreach (var product in productElements)
-					{
-						try
-						{
-							var p = new ProductRecord
-																{
-																	Name = Client.GetValue(product, "name"),
-																	ProductId = Client.GetValue(product, "id"),
-																	Att2Id = Client.GetValue(product, "brand_id"),
-																	Price = Client.GetValue(product, "price"),
-																	SalePrice = Client.GetValue(product, "sale_price"),
-																	Filter = string.Empty,
-																	Rating = Client.GetValue(product, "rating_total"),
-																	StandardCode = Client.GetValue(product, "upc"),
-																	Link = Client.GetValue(product, "custom_url")
-																};
+			//Next get all the Categories so we can construct the tree
+			countXml = CallCartApi("categories/count", "categories");
+			countVal = countXml.Elements("count").First().Value;
+			iRows = Convert.ToInt16(countVal);
+			pages = (int)Math.Ceiling((decimal)iRows / (decimal)250); //can only get 250 products at a time		
+			var categoryXml = new List<XElement>(); //this will hold all images for entire catalog
+			for (int page = 1; page <= pages; page++)
+			{
+				string paging = string.Format("?page={0}&limit=250", page);
+				var pageXml = CallCartApi("categories" + paging, "categories");
+				if (pageXml == null)
+					break;
+				categoryXml.AddRange(pageXml.Elements("category"));
+				ProgressText = string.Format("{1}{0}{2} Categories ({3})", Environment.NewLine, tempDisplay, categoryXml.Count, stopWatch.Lap());
+			}
+    	SetCategoryParents(categoryXml);
+    	ProgressText += Environment.NewLine;
+			tempDisplay = ProgressText;
 
-							//string iLink = GetProductImage((IEnumerable<XElement>)imagesXml, p.ProductId);
-							string iLink = GetProductImage(imagesXml, p.ProductId);
-							if (iLink.Length < 1)
-							{
-								errors++;
-								iLink = p.ProductId + ".jpg"; //placeholder
-							}
-							p.ImageLink = string.Format("/product_images/{0}", iLink);
-							p.Att1Id = GetProductCategories(product.Element("categories"));
-							if (p.StandardCode == null)
-								p.StandardCode = string.Empty;
-
-							//check category conditions, exclusions, and filters
-							ApplyRules(ref p, product);
-
-							products.Add(p);
-						}
-						catch { errors++; }
-						ProgressText = string.Format("{0}{1} completed, {2} errors ({3})", tempDisplay, ++pRows, errors, stopWatch.Lap());
-					}
+			//now get each page of products
+			pages = (int)Math.Ceiling((decimal)pRows / (decimal)250); //can only get 250 products at a time										
+			IEnumerable<XElement> productsXml = null; //this will only hold a single page of products
+			int errors = 0; pRows = 0;
+			for (int page = 1; page <= pages; page++)
+				{
+				string paging = string.Format("?page={0}&limit=250", page);
+				productsXml = CallCartApi("products" + paging, "products");
+				if (productsXml == null)
+				{
+					errors++; //not necessarily an error
+					break;
 				}
-				if (products.Count < 1)
-					return result + "(no data)";
 
-				var pCount = string.Format("({0} items) ", products.Count);
-        ProgressText = string.Format("{0}{1}completed ({2}){3}Uploading to server...", tempDisplay, pCount, stopWatch.Lap(), Environment.NewLine);
-				result += m_boostService.WriteTable(m_alias, CatalogFilename, products);
-				stopWatch.Stop();
-        return result;
+				var productElements = productsXml.Elements("product");
+				foreach (var product in productElements)
+				{
+					try
+					{
+						var p = new ProductRecord
+															{
+																Name = Client.GetValue(product, "name"),
+																ProductId = Client.GetValue(product, "id"),
+																Att2Id = Client.GetValue(product, "brand_id"),
+																Price = Client.GetValue(product, "price"),
+																SalePrice = Client.GetValue(product, "sale_price"),
+																Filter = string.Empty,
+																Rating = Client.GetValue(product, "rating_total"),
+																StandardCode = Client.GetValue(product, "upc"),
+																Link = Client.GetValue(product, "custom_url"),
+																ImageLink = string.Empty
+															};
+
+						p.ImageLink = GetProductImage(imagesXml, p.ProductId);
+						p.Att1Id = GetProductCategories(product.Element("categories"));
+						if (p.StandardCode == null)
+							p.StandardCode = string.Empty;
+
+#if DEBUG
+						if (p.ProductId.Equals("11348") || p.ProductId.Equals("11012"))
+						{
+							var test = CallCartApi(string.Format("products/{0}/customfields", p.ProductId), "customfields");
+							var s = "break here";
+						}
+#endif
+						var customFields = GetProductCustomFields(customFieldXml, p.ProductId);
+						if (customFields.Any())
+							product.Add(customFields);
+
+						//check category conditions, exclusions, and filters
+						ApplyRules(ref p, product);
+
+						products.Add(p);
+					}
+					catch { errors++; }
+					ProgressText = string.Format("{0}{1} items completed, {2} errors ({3})", tempDisplay, ++pRows, errors, stopWatch.Lap());
+				}
+			}
+			if (products.Count < 1)
+				return result + "(no data)";
+
+			var pCount = string.Format("({0} items) ", products.Count);
+      ProgressText = string.Format("{0}{1} items completed ({2}){3}Uploading to server...", tempDisplay, pCount, stopWatch.Lap(), Environment.NewLine);
+			result += m_boostService.WriteTable(m_alias, CatalogFilename, products);
+			stopWatch.Stop();
+      return result;
     }
 
     protected override string GetSalesMonth(DateTime exportDate, string filename)
     {
+			//Note: This was originally written to work with both live API connections 
+			//      and manually exported OrderHistory.xml, butAPI sections are now 
+			//			commented out so it only works with manual exports. 
+			//      The API version worked, but had to call the API too many times to get
+			//			all the orders (250 at a time) and then call again to get the details
+			//			for each order. This exceeded the API bandwidth limit for larger stores. 
+
       var stopWatch = new StopWatch(true);
 
 			//get daterange for this month and create query
-			DateTime beginDate = new DateTime(exportDate.Year, exportDate.Month, 1);
-			DateTime endDate = beginDate.AddMonths(1).AddDays(-1);
+			var beginDate = new DateTime(exportDate.Year, exportDate.Month, 1);
+			var endDate = beginDate.AddMonths(1).AddDays(-1);
 			//const string dateFormat = "ddd, dd MMM yyyy HH:mm:ss +0000";
 			//string query = string.Format("?min_date_created={0}&max_date_created={1}",
 			//                                HttpUtility.UrlEncode(beginDate.ToString(dateFormat)),
 			//                                HttpUtility.UrlEncode(endDate.ToString(dateFormat)));
 
-			//Changed to read from manually exported xml file to avoid bandwidth limit on API
-			if ((SalesHistory == null) || (SalesHistory.Count() == 0))
+			if (SalesHistory == null || !SalesHistory.Any())
 				return Environment.NewLine + "No orders in sales history";
 			int rows = SalesHistory.Count();
 
@@ -290,7 +382,8 @@ namespace _4_Tell
 
     protected override string GetExclusions()
     {
-			//NOTE: GetCatalog must be called before GetExclusions in case there are any categories excluded
+			//NOTE: GetCatalog must be called before GetExclusions 
+			//most of the exclusion logic is processed in ApplyRules on each product
 			m_exclusionsEnabled = false;
       if (m_exclusions == null && m_catConditions == null)
           return Environment.NewLine + "No Exclusions";
@@ -305,24 +398,6 @@ namespace _4_Tell
 				exclusions = m_catConditions.GetExcludedItems().Distinct().Select(x =>
 												new ExclusionRecord { Id = x }).ToList();
 					
-			//moved to GetCatalog because of paging issue
-			//if (m_exclusions != null)
-			//{
-			//    var productsXml = CallCartApi("products");
-			//    if (productsXml == null)
-			//        return result + "Error reading products.";
-
-			//    foreach (var c in m_exclusions)
-			//    {
-			//        var subList = c.Evaluate(productsXml.Elements("product"), "id").Select(x =>
-			//                            new ExclusionRecord { Id = x }).ToList();
-			//        if(subList.Count > 0)
-			//        {
-			//            exclusions = exclusions.Union(subList).ToList();
-			//            m_exclusionsEnabled = true;
-			//        }
-			//    }
-			//}
 			if (exclusions.Count < 1)
 				return result + "(no data)";
 
@@ -335,74 +410,78 @@ namespace _4_Tell
 
     protected override string GetReplacements()
     {
-        if (!m_replacementsEnabled)
-            return Environment.NewLine + "Replacements disabled";
-				m_replacementsEnabled = false;
-        if (m_replacements == null || m_replacements.Count == 0)
-            return Environment.NewLine + "No replacements";
+			//NOTE: GetCatalog must be called before GetReplacements 
+			//most of the exclusion logic is processed in ApplyRules on each product
+			if (!m_replacementsEnabled)
+				return Environment.NewLine + "Replacements disabled";
+			m_replacementsEnabled = false;
+      if (m_replacements == null || m_replacements.Count == 0)
+        return Environment.NewLine + "No replacements";
 
-        var result = string.Format("{0}{1}: ", Environment.NewLine, ReplacementFilename);
-				ProgressText += result;
-				string tempDisplay = ProgressText;
-				ProgressText += "Exporting...";
+      var result = string.Format("{0}{1}: ", Environment.NewLine, ReplacementFilename);
+			ProgressText += result;
+			string tempDisplay = ProgressText;
+			ProgressText += "Exporting...";
 
-        var replacements = new List<ReplacementRecord>();
-				if (m_replacements[0].Type.Equals(ReplacementCondition.repType.item)) //individual item replacement
+			//NOTE: catalog replacements are handled in ApplyRules
+			if (m_replacements[0].Type.Equals(ReplacementCondition.RepType.Item)) //individual item replacement
+      {
+        foreach (var rc in m_replacements)
         {
-            foreach (var rc in m_replacements)
-            {
-                if (!rc.Type.Equals(ReplacementCondition.repType.item))
-                {
-                    m_log.WriteEntry(string.Format("Invalid replacement condition: {0}", rc), EventLogEntryType.Warning, m_alias);
-                    continue;
-                }
-                replacements.Add(new ReplacementRecord { OldId = rc.OldName, NewId = rc.NewName });
-            }
+          if (!rc.Type.Equals(ReplacementCondition.RepType.Item))
+          {
+            m_log.WriteEntry(string.Format("Invalid replacement condition: {0}", rc), EventLogEntryType.Warning, m_alias);
+            continue;
+          }
+					if (!m_repRecords.Any(r => r.OldId.Equals(rc.OldName))) //can only have one replacement for each item
+						m_repRecords.Add(new ReplacementRecord { OldId = rc.OldName, NewId = rc.NewName });
         }
-				else //full catalog replacement -- need to retrieve from Cart
-				{
-            var productsXml = CallCartApi("products");
-            if (productsXml == null)
-							return result + "Error reading products.";
-						else
-	            replacements.AddRange(productsXml.Elements("product").Select(p => new ReplacementRecord 
-									{ 
-										OldId = Client.GetValue(p, m_replacements[0].OldName), 
-										NewId = Client.GetValue(p, m_replacements[0].NewName) 
-									}));
-        }
-				if (replacements.Count < 1)
-					return result + "(no data)";
+      }
+			if (m_repRecords.Count < 1)
+				return result + "(no data)";
 
-				m_replacementsEnabled = true;
-				var countDisplay = string.Format("({0} items) ", replacements.Count);
-				ProgressText = tempDisplay + countDisplay + "Uploading...";
-				result += countDisplay + m_boostService.WriteTable(m_alias, ReplacementFilename, replacements);
-				return result;
+			m_replacementsEnabled = true;
+			var countDisplay = string.Format("({0} items) ", m_repRecords.Count);
+			ProgressText = tempDisplay + countDisplay + "Uploading...";
+			result += countDisplay + m_boostService.WriteTable(m_alias, ReplacementFilename, m_repRecords);
+			return result;
     }
 
     protected override string GetAtt1Names()
     {
-        var result = string.Format("{0}{1}: ", Environment.NewLine, Att1Filename);
-				ProgressText += result;
-				string tempDisplay = ProgressText;
-				ProgressText += "Exporting...";
+      var result = string.Format("{0}{1}: ", Environment.NewLine, Att1Filename);
+			ProgressText += result;
+			string tempDisplay = ProgressText;
+			ProgressText += "Exporting...";
 
-        var categoriesXml = CallCartApi("categories");
-        if (categoriesXml == null)
-            return result + "(no data)";
+			//need to get count and page through as the api limits to 250 max per call
+			var countXml = CallCartApi("categories/count", "categories");
+			var countVal = countXml.Elements("count").First().Value;
+			int iRows = Convert.ToInt16(countVal);
+			int pages = (int)Math.Ceiling((decimal)iRows / (decimal)250); 	
+			var categoriesXml = new List<XElement>(); 
+			for (int page = 1; page <= pages; page++)
+			{
+				string paging = string.Format("?page={0}&limit=250", page);
+				var pageXml = CallCartApi("categories" + paging, "categories");
+				if (pageXml == null)
+					break;
+				categoriesXml.AddRange(pageXml.Elements("category"));
+			}
+      if (!categoriesXml.Any())
+          return result + "(no data)";
 
-        var categories = new List<AttributeRecord>();
-        categories.AddRange(categoriesXml.Elements("category").Select(c => new AttributeRecord 
-																							{ 
-																								Id = Client.GetValue(c, "id"), 
-																								Name = Client.GetValue(c, "name").Replace(",", "") 
-																							}).Distinct());
+      var categories = new List<AttributeRecord>();
+			categories.AddRange(categoriesXml.Select(c => new AttributeRecord 
+																	{ 
+																		Id = Client.GetValue(c, "id"), 
+																		Name = Client.GetValue(c, "name").Replace(",", "").Replace("\t", "")
+																	}).Distinct());
 
-				var countDisplay = string.Format("({0} categories) ", categories.Count);
-				ProgressText = tempDisplay + countDisplay + "Uploading...";
-				result += countDisplay + m_boostService.WriteTable(m_alias, Att1Filename, categories);
-        return result;
+			var countDisplay = string.Format("({0} categories) ", categories.Count);
+			ProgressText = tempDisplay + countDisplay + "Uploading...";
+			result += countDisplay + m_boostService.WriteTable(m_alias, Att1Filename, categories);
+      return result;
     }
 
     protected override string GetAtt2Names()
@@ -415,16 +494,29 @@ namespace _4_Tell
 				string tempDisplay = ProgressText;
 				ProgressText += "Exporting...";
 
-        var brandsXml = CallCartApi("brands");
-        if (brandsXml == null)
+				//need to get count and page through as the api limits to 250 max per call
+				var countXml = CallCartApi("brands/count", "brands");
+				var countVal = countXml.Elements("count").First().Value;
+				int iRows = Convert.ToInt16(countVal);
+				int pages = (int)Math.Ceiling((decimal)iRows / (decimal)250);
+				var brandsXml = new List<XElement>(); 
+				for (int page = 1; page <= pages; page++)
+				{
+					string paging = string.Format("?page={0}&limit=250", page);
+					var pageXml = CallCartApi("brands" + paging, "brands");
+					if (pageXml == null)
+						break;
+					brandsXml.AddRange(pageXml.Elements("brand"));
+				}
+				if (!brandsXml.Any())
 					return result + "(no data)";
 
-        var brands = new List<AttributeRecord>();
-        brands.AddRange(brandsXml.Elements("brand").Select(b => new AttributeRecord 
-																		{ 
-																			Id = Client.GetValue(b, "id"), 
-																			Name = Client.GetValue(b, "name").Replace(",", "") 
-																		}).Distinct());
+				var brands = new List<AttributeRecord>();
+				brands.AddRange(brandsXml.Select(b => new AttributeRecord 
+																	{ 
+																		Id = Client.GetValue(b, "id"), 
+																		Name = Client.GetValue(b, "name").Replace(",", "").Replace("\t", "")
+																	}).Distinct());
 
 				var countDisplay = string.Format("({0} brands) ", brands.Count);
 				ProgressText = tempDisplay + countDisplay + "Uploading...";
@@ -434,38 +526,79 @@ namespace _4_Tell
 
     #endregion
 
-    private static string GetProductCategories(XContainer categories)
+    private string GetProductCategories(XContainer categories)
     {
-        return categories == null ? string.Empty : categories.Elements("value").Select(x => x.Value).Aggregate((w, j) => string.Format("{0},{1}", w, j));
+			if (categories == null) return string.Empty;
+
+    	var catList = m_catConditions.RemoveIgnored(categories.Elements("value").Select(x => x.Value));
+    	catList = catList.Union(m_catConditions.GetAllParents(catList.ToList()));
+      return catList.Aggregate((w, j) => string.Format("{0},{1}", w, j));
     }
 
-		//private static string GetProductImage(IEnumerable<XElement> imagesXml, string productId)
 	  private static string GetProductImage(List<XElement> imagesXml, string productId)
 		{
-      //pulls the thumbnail image for the product
+			//pulls the thumbnail image for the product
       if (imagesXml == null)
           return string.Empty;
 
 			string iLink = string.Empty;
 			try
 			{
-				//var idMatches = imagesXml.Elements("image").Select(i => i.Element("product_id")).Where(pid => pid != null).Where(pid => pid.Value.Equals(productId));
 				var idMatches = imagesXml.Where(x => Client.GetValue(x, "product_id").Equals(productId));
-				//var idMatches = new List<XElement>();
-				//foreach (XElement x in imagesXml)
-				//  if (Client.GetValue(x, "product_id").Equals(productId))
-				//    idMatches.Add(x);
-				if (idMatches == null) 
-					return string.Empty;
-
 				iLink = idMatches.Where(x => Client.GetValue(x, "is_thumbnail").Equals("true")).Select(x => Client.GetValue(x, "image_file")).DefaultIfEmpty("").First();
 
 				if (string.IsNullOrEmpty(iLink)) //no thumbnails so grab first image in list
 					iLink = Client.GetValue(idMatches.First(), "image_file");
-
 			}
 			catch { }
-			return iLink;
-    }
-  }
+			return iLink == null ? string.Empty: string.Format("/product_images/{0}", iLink);
+			//TODO: provide means for clients to set an exclusion rule if image link empty
+		}
+
+		private static List<XElement> GetProductCustomFields(List<XElement> customFieldXml, string productId)
+		{
+			//pulls all custom fields for the product
+			var customfields = new List<XElement>();
+
+			if (customFieldXml != null)
+			{
+				try
+				{
+					var fields = customFieldXml.Where(x => Client.GetValue(x, "product_id").Equals(productId)).ToList();
+					if (fields.Any())
+					{
+						//need to construct new XML where the custom field name and text form the elements
+						foreach (var f in fields)
+						{
+							var temp = f.Element("name");
+							if (temp == null) continue;
+							var name = (XName) temp.Value;
+							temp = f.Element("text");
+							if (temp == null) continue;
+							var text = temp.Value;
+
+							customfields.Add(new XElement(name, text));
+						}
+					}
+				}
+				catch {}
+			}
+			return customfields;
+		}
+
+		private void SetCategoryParents(IEnumerable<XElement> categories)
+		{
+			foreach (var cat in categories)
+			{
+				var temp = cat.Element("id");
+				if (temp == null) continue;
+				var child = temp.Value;
+				temp = cat.Element("parent_category_list");
+				if (temp == null) continue;
+				var parents = temp.Value.Split(',').Select(p => p.Trim()).ToList();
+				m_catConditions.AddParents(child, parents);
+			}
+		}
+
+	}
 }

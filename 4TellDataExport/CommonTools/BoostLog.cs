@@ -148,6 +148,7 @@ namespace _4_Tell.Utilities
 
 		public void WriteEntry(string message, EventLogEntryType type, string clientAlias = "")
 		{
+			if (clientAlias == null) clientAlias = "";
 			BoostError error = new BoostError();
 			error.Time = DateTime.Now;
 			error.Message = message; 
@@ -157,8 +158,9 @@ namespace _4_Tell.Utilities
 			//m_errSuffix should be populated with the service call and parameters
 			if (m_errSuffix.Length > 0) //add suffix here to avoid threading issues
 				error.Message += "\n" + m_errSuffix;
-			if (clientAlias.Length > 0) //if client alias sent in then add it to the message
-				error.Message += "\nClientAlias = " + error.Alias;
+			//if client alias sent in then add it to the message
+			if ((clientAlias.Length > 0) && !m_errSuffix.Contains(clientAlias))
+				error.Message += "\nClientAlias = " + clientAlias;
 
 			ThreadPool.QueueUserWorkItem(delegate(object e)
 			{
@@ -213,14 +215,14 @@ namespace _4_Tell.Utilities
 						sendAdmin = ((int)m_adminReportLevel <= (int)(ReportLevel.Error));
 						sendClient = ((int)(poc.Report) <= (int)(ReportLevel.Error));
 						m_usageLog.AddError(error.Alias); //add to error tally
-						m_usageLog.AddLastError(error);	//replace last error
+						m_usageLog.SetLastError(error);	//replace last error
 						break;
 					case EventLogEntryType.Warning:
 						subject = "Warning";
 						sendAdmin = ((int)m_adminReportLevel <= (int)(ReportLevel.Warrning));
 						sendClient = ((int)(poc.Report) <= (int)(ReportLevel.Warrning));
 						m_usageLog.AddWarning(error.Alias); //add to warning tally
-						m_usageLog.AddLastError(error);	//replace last error
+						m_usageLog.SetLastError(error);	//replace last error
 						break;
 					case EventLogEntryType.Information:
 						subject = "Status Update";
@@ -277,8 +279,7 @@ namespace _4_Tell.Utilities
 
 		private string CheckLength(string text, int maxLen)
 		{
-			int len = text.Length;
-			if (len <= maxLen) return text;
+			if (text.Length <= maxLen) return text;
 			else return text.Trim().Substring(0, maxLen);
 		}
 		

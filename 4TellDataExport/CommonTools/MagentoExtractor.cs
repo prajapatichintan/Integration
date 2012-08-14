@@ -17,21 +17,23 @@ namespace _4_Tell
 	using Utilities;
 	using Utilities.DynamicProxyLibrary;
 	//using Utilities.GoStore;
-	//using WSTeaService; //DEBUG
+	using GoStore_wsTea; //DEBUG
 	//using GoStore_condomania;
-	using GoStore_Buticul;
+	//using GoStore_Buticul;
 
 	/// <summary>
 	/// CartExtractor implementation for Magento shopping carts
 	/// </summary>
 	public class MagentoExtractor: CartExtractor
 	{
+		string m_wsdlUrl = string.Empty;
 
 		public MagentoExtractor(string alias, XElement settings)
 			: base(alias, settings)
 		{
 			//Add any Magento specific construction here
 			ParseSettings(settings);
+			m_wsdlUrl = "http://" + m_storeShortUrl + "/api/v2_soap/?wsdl";
 		}
 
 		protected override void ParseSettings(XElement settings)
@@ -39,7 +41,7 @@ namespace _4_Tell
 			base.ParseSettings(settings);
 		}
 
-		public override void LogSalesOrder(string orderID)
+		public override void LogSalesOrder(string orderId)
 		{
 			StopWatch stopWatch = new StopWatch(true);
 			string result = "AutoSalesLog: ";
@@ -49,7 +51,7 @@ namespace _4_Tell
 			try
 			{
 				//access Magento store API
-				DynamicProxy proxy = GetSoapProxy(m_storeLongUrl + "/api/v2_soap/?wsdl", "Mage_Api_Model_Server_V2_HandlerPortType");
+				DynamicProxy proxy = GetSoapProxy(m_wsdlUrl, "Mage_Api_Model_Server_V2_HandlerPortType");
 				if (proxy == null)
 					throw new Exception("Unable to create SOAP proxy for Magento");
 
@@ -59,7 +61,7 @@ namespace _4_Tell
 
 				//Get order details
 				//Get order details  sales_order.info  salesOrderInfo
-				resultObj = proxy.CallMethod("sales_order.info", sessionID, orderID);
+				resultObj = proxy.CallMethod("sales_order.info", sessionID, orderId);
 				XElement orderInfo = XmlSerializerExtension.SerializeAsXElement(resultObj, "salesOrderEntity");
 				
 				//Type t = resultObj.GetType();
@@ -136,7 +138,7 @@ namespace _4_Tell
 			StopWatch exportWatch = new StopWatch(true);
 
 			//--------DEBUG USING STATIC------
-			bool static_proxy = true;
+			bool static_proxy = false;
 			//--------------------------------
 
 #if MAGENTO_API_AVAILABLE			
@@ -253,7 +255,7 @@ namespace _4_Tell
 #endif
 
 			#region Static GoStore
-			if (static_proxy && m_alias.Equals("Buticul"))
+			if (static_proxy && m_alias.Equals("WSTea"))
 			{				
 				Mage_Api_Model_Server_V2_HandlerPortTypeClient Mclient = new Mage_Api_Model_Server_V2_HandlerPortTypeClient();
 				string MsessionId = "";
@@ -375,7 +377,7 @@ namespace _4_Tell
 			if (!static_proxy)
 			{
 				//http://whitesalmontea.gostorego.com/api/v2_soap/?wsdl
-				DynamicProxy proxy = GetSoapProxy(m_storeLongUrl + "/api/v2_soap/?wsdl", "Mage_Api_Model_Server_V2_HandlerPortType");
+				DynamicProxy proxy = GetSoapProxy(m_wsdlUrl, "Mage_Api_Model_Server_V2_HandlerPortType");
 				if (proxy == null)
 					throw new Exception("Unable to create SOAP proxy for Magento");
 
@@ -574,7 +576,7 @@ namespace _4_Tell
 			catch { }
 
 			//dynamic test
-			DynamicProxy proxy = GetSoapProxy(m_storeLongUrl + "/api/v2_soap/?wsdl", "Mage_Api_Model_Server_V2_HandlerPortType");
+			DynamicProxy proxy = GetSoapProxy(m_wsdlUrl, "Mage_Api_Model_Server_V2_HandlerPortType");
 			if (proxy == null)
 				throw new Exception("Unable to create SOAP proxy for Magento");
 
@@ -698,7 +700,7 @@ namespace _4_Tell
 		protected override string GetSalesMonth(DateTime exportDate, string filename)
 		{
 			//access Magento store API
-			DynamicProxy proxy = GetSoapProxy(m_storeLongUrl + "/api/v2_soap/?wsdl", "Mage_Api_Model_Server_V2_HandlerPortType");
+			DynamicProxy proxy = GetSoapProxy(m_wsdlUrl, "Mage_Api_Model_Server_V2_HandlerPortType");
 			if (proxy == null)
 				throw new Exception("Unable to create SOAP proxy for Magento");
 
